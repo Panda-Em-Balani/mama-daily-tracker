@@ -1,13 +1,14 @@
 /* ═══════════════════════════════════════════════════════════════
-   Care Companion — Service Worker v2
-   Offline-first: cache on install, serve from cache, sync writes
+   Mama Daily Tracker — Service Worker v3
+   Fixed paths for GitHub Pages subfolder deployment
 ═══════════════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'care-companion-v2';
+const CACHE_NAME = 'mama-daily-v3';
+const BASE = '/mama-daily-tracker';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
+  BASE + '/',
+  BASE + '/index.html',
+  BASE + '/manifest.json',
   'https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
 ];
@@ -56,7 +57,9 @@ self.addEventListener('fetch', event => {
         }
         return response;
       }).catch(() => {
-        if (event.request.mode === 'navigate') return caches.match('/index.html');
+        if (event.request.mode === 'navigate') {
+          return caches.match(BASE + '/index.html');
+        }
       });
     })
   );
