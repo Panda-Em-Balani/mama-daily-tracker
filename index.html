@@ -467,7 +467,10 @@
     body.readonly .event-type-btn, body.readonly textarea,
     body.readonly input { pointer-events: none; opacity: 0.5; }
     body.readonly .section-add-btn { display: none; }
-    body.readonly .scroll-area { filter: grayscale(100%); opacity: 0.85; }
+    body.readonly #app { filter: grayscale(100%); }
+    body.readonly .topbar,
+    body.readonly .bottom-nav,
+    body.readonly #readonly-banner { filter: none; }
 
     /* ─── JOURNAL SUB-TABS ───────────────────────────────────── */
     .journal-tabs { display: flex; background: rgba(122,158,126,0.1); border-radius: 10px; padding: 3px; margin-bottom: 16px; }
@@ -2086,7 +2089,9 @@ function renderCalEvents() {
     </div>`).join('');
 }
 
-function deleteEvent(id) {
+async function deleteEvent(id) {
+  // Delete from Supabase first
+  await DB.delete('schedule_events', `local_id=eq.${id}`);
   let events = loadEvents().filter(e => e.id !== id);
   saveEvents(events);
   renderCalendar();
@@ -3018,7 +3023,12 @@ function confirmDeleteWater(index) {
     'Remove this entry?',
     'This water log entry will be removed from today\'s record.',
     'Remove',
-    () => {
+    async () => {
+      const entry = STATE.water[index];
+      // Delete from Supabase by timestamp
+      if (entry?.timestamp) {
+        await DB.delete('water_log', `timestamp=eq.${encodeURIComponent(entry.timestamp)}`);
+      }
       STATE.water.splice(index, 1);
       saveLocal();
       renderWater();
@@ -3033,7 +3043,11 @@ function confirmDeleteSymptom(index) {
     'Remove this symptom?',
     'This symptom entry will be removed from today\'s log.',
     'Remove',
-    () => {
+    async () => {
+      const entry = STATE.symptoms[index];
+      if (entry?.timestamp) {
+        await DB.delete('symptom_log', `timestamp=eq.${encodeURIComponent(entry.timestamp)}`);
+      }
       STATE.symptoms.splice(index, 1);
       saveLocal();
       renderSymptomLog();
@@ -3045,7 +3059,14 @@ function confirmDeleteSymptom(index) {
 /* ─── Wrap existing undo/delete with confirmation ─────────── */
 const _undoTask = undoTask;
 undoTask = function(taskId) {
-  showConfirm('Undo this task?', 'This will reset the task back to pending.', 'Undo', () => _undoTask(taskId));
+  showConfirm('Undo this task?', 'This will reset the task back to pending.', 'Undo', async () => {
+    const entry = STATE.tasks[taskId];
+    if (entry?.timestamp) {
+      const task = TASKS.find(t => t.id === taskId);
+      await DB.delete('activity_log', `timestamp=eq.${encodeURIComponent(entry.timestamp)}&activity_type=eq.${encodeURIComponent(task?.label || taskId)}`);
+    }
+    _undoTask(taskId);
+  });
 };
 
 const _undoCustomTask = undoCustomTask;
