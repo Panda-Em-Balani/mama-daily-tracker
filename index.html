@@ -467,6 +467,7 @@
     body.readonly .event-type-btn, body.readonly textarea,
     body.readonly input { pointer-events: none; opacity: 0.5; }
     body.readonly .section-add-btn { display: none; }
+    body.readonly .scroll-area { filter: grayscale(100%); opacity: 0.85; }
 
     /* ─── JOURNAL SUB-TABS ───────────────────────────────────── */
     .journal-tabs { display: flex; background: rgba(122,158,126,0.1); border-radius: 10px; padding: 3px; margin-bottom: 16px; }
@@ -811,12 +812,16 @@
         <button class="pill-tab" id="tab-weekly" onclick="switchReport('weekly')">Weekly</button>
       </div>
       <div id="report-daily">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <label style="font-size:12px;font-weight:500;color:var(--ink-soft);white-space:nowrap">Report date:</label>
+          <input type="date" id="report-date-picker" style="margin-top:0;flex:1" onchange="renderDailyReport()" />
+        </div>
         <div class="report-block" id="report-daily-content"></div>
         <button class="btn-secondary" onclick="exportPDF('daily')">📄 Export Daily Report</button>
       </div>
       <div id="report-weekly" style="display:none">
         <div class="report-block" id="report-weekly-content"></div>
-        <button class="btn-secondary" onclick="exportPDF('weekly')">📄 Export Weekly Report</button>
+        <button class="btn-secondary" onclick="exportPDF('weekly')">📄 Export Weekly Report with Calendar</button>
       </div>
     </div>
 
@@ -999,9 +1004,15 @@
     <input type="time" id="event-time-input" />
     <label class="form-label">Type</label>
     <div class="event-type-row">
-      <button class="event-type-btn active-chemo" id="etype-chemo" onclick="selectEventType('chemo')">💉 Chemo</button>
-      <button class="event-type-btn" id="etype-checkup" onclick="selectEventType('checkup')">🩺 Checkup</button>
-      <button class="event-type-btn" id="etype-other" onclick="selectEventType('other')">📅 Other</button>
+      <button class="event-type-btn active-chemo" id="etype-chemo" onclick="selectEventType('chemo')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2v-4M9 21H5a2 2 0 01-2-2v-4m0 0h18"/></svg>Chemo
+      </button>
+      <button class="event-type-btn" id="etype-checkup" onclick="selectEventType('checkup')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Checkup
+      </button>
+      <button class="event-type-btn" id="etype-other" onclick="selectEventType('other')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Other
+      </button>
     </div>
     <label class="form-label">Notes (optional)</label>
     <textarea id="event-notes-input" rows="2" placeholder="Any details…"></textarea>
@@ -1030,7 +1041,7 @@ const CONFIG = {
   callName:         "Mama",     // used in on-screen motivational UI
   waterGoalMl:      2000,
   waterGoalGlasses: 8,
-  supabaseUrl:      "https://jocjrgsoilqpxmcqreup.supabase.co",
+ supabaseUrl:      "https://jocjrgsoilqpxmcqreup.supabase.co",
   supabaseKey:      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvY2pyZ3NvaWxxcHhtY3FyZXVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NDQ2OTksImV4cCI6MjA5NjUyMDY5OX0.WwCD4c4LzqWsbaH5xYOQuyi8BbrW3JxJs99NPPRHNag",
   useSupabase:      true,      // set true after connecting Supabase
 };
@@ -1412,11 +1423,12 @@ async function navigate(page) {
       await loadEventsFromSupabase();
       renderCalendar();
     } else if (page === 'report') {
+      initReportDatePicker();
       await loadFromSupabase();
       renderReport();
     }
   } else {
-    if (page === 'report') renderReport();
+    if (page === 'report') { initReportDatePicker(); renderReport(); }
     if (page === 'schedule') renderCalendar();
   }
 }
@@ -2055,7 +2067,11 @@ function renderCalEvents() {
     return;
   }
 
-  const typeIcon = { chemo:'💉', checkup:'🩺', other:'📅' };
+  const typeIcon = {
+    chemo:   `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2v-4M9 21H5a2 2 0 01-2-2v-4m0 0h18"/></svg>`,
+    checkup: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+    other:   `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>`,
+  };
   listEl.innerHTML = filtered.map(ev => `
     <div class="event-card ${ev.type}" id="event-${ev.id}" onclick="openEventDetail('${ev.id}')" style="cursor:pointer">
       <div class="event-icon">${typeIcon[ev.type] || '📅'}</div>
@@ -2151,7 +2167,7 @@ function renderTodayScheduleBanner() {
   }
 
   const ev = todayEvts[0]; // Show the most relevant (first upcoming)
-  const typeIcon  = { chemo:'💉', checkup:'🩺', other:'📅' };
+  const typeIcon = { chemo:'⚕', checkup:'🛡', other:'📋' };
   const typeLabel = { chemo:'Chemo Session', checkup:'Doctor Visit', other:'Appointment' };
   const countExtra = todayEvts.length > 1 ? ` (+${todayEvts.length-1} more)` : '';
 
@@ -2272,6 +2288,7 @@ function switchReport(type) {
   document.getElementById('tab-weekly').classList.toggle('active', type === 'weekly');
   document.getElementById('report-daily').style.display  = type === 'daily'  ? 'block' : 'none';
   document.getElementById('report-weekly').style.display = type === 'weekly' ? 'block' : 'none';
+  if (type === 'daily') initReportDatePicker();
   renderReport();
 }
 
@@ -2280,54 +2297,95 @@ function renderReport() {
   else renderWeeklyReport();
 }
 
+function getEarliestDataDate() {
+  // Find earliest cc_ key in localStorage
+  const keys = Object.keys(localStorage)
+    .filter(k => k.startsWith('cc_') && k.match(/cc_\d{4}-\d{2}-\d{2}/))
+    .map(k => k.replace('cc_',''))
+    .sort();
+  return keys[0] || todayKey();
+}
+
+function initReportDatePicker() {
+  const picker = document.getElementById('report-date-picker');
+  if (!picker) return;
+  picker.value = todayKey();
+  picker.max   = todayKey();
+  picker.min   = getEarliestDataDate();
+}
+
+function getDataForDate(dateKey) {
+  if (dateKey === todayKey()) return STATE;
+  const raw = localStorage.getItem(`cc_${dateKey}`);
+  return raw ? JSON.parse(raw) : null;
+}
+
 function renderDailyReport() {
-  const el    = document.getElementById('report-daily-content');
-  const today = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+  const el        = document.getElementById('report-daily-content');
+  const picker    = document.getElementById('report-date-picker');
+  const dateKey   = picker?.value || todayKey();
+  const data      = getDataForDate(dateKey);
+  const dateLabel = new Date(dateKey + 'T12:00:00').toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
 
-  const meds   = TASKS.filter(t => t.isMed);
-  const meals  = TASKS.filter(t => t.isMeal);
-  const medsDone  = meds.filter(t => STATE.tasks[t.id]?.status === 'done').length;
-  const mealsDone = meals.filter(t => STATE.tasks[t.id]?.status === 'done').length;
-  const totalWater = netWaterTotal();
-  const waterGlasses = (totalWater / 250).toFixed(1);
+  if (!data) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><p>No data logged for ${dateLabel}.</p></div>`;
+    return;
+  }
 
-  // Custom snacks count
-  const snackCount = Object.values(STATE.customTasks || {})
-    .flat().filter(t => t.status === 'done').length;
-
+  const meds      = TASKS.filter(t => t.isMed);
+  const meals     = TASKS.filter(t => t.isMeal);
+  const medsDone  = meds.filter(t => data.tasks?.[t.id]?.status === 'done').length;
+  const mealsDone = meals.filter(t => data.tasks?.[t.id]?.status === 'done').length;
+  const waterList = data.water || [];
+  const totalWater = Math.max(0, waterList.reduce((s,w) => s + (w.deducted ? -w.amount_ml : w.amount_ml), 0));
+  const snackCount = Object.values(data.customTasks || {}).flat().filter(t => t.status === 'done').length;
   const severityLabel = {1:'Mild',2:'Low',3:'Moderate',4:'High',5:'Severe'};
-  const symptomsHtml = STATE.symptoms.length
-    ? STATE.symptoms.map(s => {
-        const sym   = SYMPTOMS.find(x => x.id === s.symptom);
-        const label = sym?.label || s.symptom;
-        return `<div class="report-line"><span>${escapeHtml(label)}</span><span class="report-val">Level ${s.severity} – ${severityLabel[s.severity]}</span></div>`;
+
+  // Calendar events for this date
+  const events = loadEvents().filter(e => e.date === dateKey);
+
+  const symptomsHtml = (data.symptoms || []).length
+    ? (data.symptoms || []).map(s => {
+        const sym = SYMPTOMS.find(x => x.id === s.symptom);
+        return `<div class="report-line"><span>${escapeHtml(sym?.label || s.symptom)}</span><span class="report-val">Level ${s.severity} – ${severityLabel[s.severity]}</span></div>`;
       }).join('')
     : '<div class="report-line"><span>No symptoms logged</span><span class="report-val">—</span></div>';
 
+  const eventsHtml = events.length
+    ? events.map(ev => {
+        const typeLabel = { chemo:'Chemo Session', checkup:'Doctor Visit', other:'Appointment' };
+        const photoNote = ev.photos?.length ? ` · ${ev.photos.length} photo attachment${ev.photos.length>1?'s':''}` : '';
+        return `<div class="report-line"><span>${escapeHtml(ev.title)}</span><span class="report-val">${typeLabel[ev.type]}${ev.time ? ' · '+ev.time : ''}${photoNote}</span></div>`;
+      }).join('')
+    : '';
+
   el.innerHTML = `
-    <h3>📋 Daily Report — ${today}</h3>
+    <h3>📋 Daily Report — ${dateLabel}</h3>
     <div class="report-line"><span>Medications taken</span><span class="report-val">${medsDone} / ${meds.length}</span></div>
     <div class="report-line"><span>Meals completed</span><span class="report-val">${mealsDone} / ${meals.length}</span></div>
     ${snackCount ? `<div class="report-line"><span>Extra snacks / food</span><span class="report-val">${snackCount}</span></div>` : ''}
-    <div class="report-line"><span>Water intake</span><span class="report-val">${totalWater} ml (${waterGlasses} glasses)</span></div>
-    <div class="report-line"><span>Mood</span><span class="report-val">${STATE.reflection?.mood || 'Not logged'}</span></div>
-    ${STATE.reflection?.notes ? `<div class="report-line"><span>Reflection</span><span class="report-val">${escapeHtml(STATE.reflection.notes)}</span></div>` : ''}
+    <div class="report-line"><span>Water intake</span><span class="report-val">${totalWater} ml (${(totalWater/250).toFixed(1)} glasses)</span></div>
+    <div class="report-line"><span>Mood</span><span class="report-val">${data.reflection?.mood || 'Not logged'}</span></div>
+    ${data.reflection?.notes ? `<div class="report-line"><span>Reflection</span><span class="report-val">${escapeHtml(data.reflection.notes)}</span></div>` : ''}
     <div style="margin-top:12px;margin-bottom:4px;font-size:11px;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.8px">Symptoms</div>
     ${symptomsHtml}
-    ${STATE.notes.length ? `
+    ${eventsHtml ? `
+      <div style="margin-top:12px;margin-bottom:4px;font-size:11px;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.8px">Appointments</div>
+      ${eventsHtml}` : ''}
+    ${(data.notes || []).length ? `
       <div style="margin-top:12px;margin-bottom:4px;font-size:11px;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.8px">Notes</div>
-      ${STATE.notes.map(n => `<div class="report-line"><span style="flex:1">${escapeHtml(n.text)}</span></div>`).join('')}` : ''}
+      ${(data.notes || []).map(n => `<div class="report-line"><span style="flex:1">${escapeHtml(n.text)}</span></div>`).join('')}` : ''}
   `;
 }
 
 function renderWeeklyReport() {
-  const el = document.getElementById('report-weekly-content');
+  const el   = document.getElementById('report-weekly-content');
   const days = [];
   for (let i = 6; i >= 0; i--) {
     const d = new Date(); d.setDate(d.getDate() - i);
     const key = d.toISOString().slice(0, 10);
     const raw = localStorage.getItem(`cc_${key}`);
-    days.push({ date: d, data: raw ? JSON.parse(raw) : null });
+    days.push({ dateKey: key, date: d, data: raw ? JSON.parse(raw) : null });
   }
 
   let totalMeds=0, possibleMeds=0, totalMeals=0, possibleMeals=0, totalWater=0, daysWithData=0;
@@ -2345,16 +2403,30 @@ function renderWeeklyReport() {
     totalMeals  += meals.filter(t => data.tasks?.[t.id]?.status === 'done').length;
     (data.water || []).forEach(w => { totalWater += w.deducted ? -w.amount_ml : w.amount_ml; });
     (data.symptoms || []).forEach(s => {
-      const key = s.custom ? s.symptom : s.symptom;
-      symptomCounts[key] = (symptomCounts[key] || 0) + 1;
+      symptomCounts[s.symptom] = (symptomCounts[s.symptom] || 0) + 1;
     });
     if (data.reflection?.mood) moods.push(data.reflection.mood);
   });
 
-  const avgWater    = daysWithData ? Math.round(Math.max(0, totalWater) / daysWithData) : 0;
-  const topSymptom  = Object.entries(symptomCounts).sort((a,b) => b[1]-a[1])[0];
-  const moodCounts  = moods.reduce((acc,m) => { acc[m]=(acc[m]||0)+1; return acc; }, {});
-  const topMood     = Object.entries(moodCounts).sort((a,b) => b[1]-a[1])[0];
+  const avgWater   = daysWithData ? Math.round(Math.max(0, totalWater) / daysWithData) : 0;
+  const topSymptom = Object.entries(symptomCounts).sort((a,b) => b[1]-a[1])[0];
+  const moodCounts = moods.reduce((acc,m) => { acc[m]=(acc[m]||0)+1; return acc; }, {});
+  const topMood    = Object.entries(moodCounts).sort((a,b) => b[1]-a[1])[0];
+
+  // Calendar events for the week
+  const allEvents  = loadEvents();
+  const weekStart  = days[0].dateKey;
+  const weekEnd    = days[6].dateKey;
+  const weekEvents = allEvents.filter(e => e.date >= weekStart && e.date <= weekEnd);
+  const typeLabel  = { chemo:'Chemo', checkup:'Checkup', other:'Appointment' };
+
+  const eventsHtml = weekEvents.length
+    ? weekEvents.map(ev => {
+        const d = new Date(ev.date + 'T12:00:00').toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+        const photoNote = ev.photos?.length ? ` · ${ev.photos.length} photo${ev.photos.length>1?'s':''}` : '';
+        return `<div class="report-line"><span>${escapeHtml(ev.title)}</span><span class="report-val">${d} · ${typeLabel[ev.type]}${photoNote}</span></div>`;
+      }).join('')
+    : '<div class="report-line"><span>No appointments this week</span><span class="report-val">—</span></div>';
 
   el.innerHTML = `
     <h3>📊 Weekly Report — Last 7 Days</h3>
@@ -2364,6 +2436,8 @@ function renderWeeklyReport() {
     <div class="report-line"><span>Most frequent symptom</span><span class="report-val">${topSymptom ? (SYMPTOMS.find(s=>s.id===topSymptom[0])?.label || topSymptom[0]) + ` (${topSymptom[1]}x)` : 'None'}</span></div>
     <div class="report-line"><span>Mood trend</span><span class="report-val">${topMood ? `${topMood[0]} (${topMood[1]}/${moods.length} days)` : '—'}</span></div>
     <div class="report-line"><span>Days with data</span><span class="report-val">${daysWithData} of 7</span></div>
+    <div style="margin-top:12px;margin-bottom:4px;font-size:11px;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.8px">Appointments This Week</div>
+    ${eventsHtml}
   `;
 }
 
@@ -2371,64 +2445,176 @@ async function exportPDF(type) {
   showToast('Generating PDF…');
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
-  const today = new Date().toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+
+  const picker    = document.getElementById('report-date-picker');
+  const dateKey   = type === 'daily' ? (picker?.value || todayKey()) : todayKey();
+  const data      = getDataForDate(dateKey) || STATE;
+  const dateLabel = new Date(dateKey + 'T12:00:00').toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
 
   doc.setFont('helvetica','bold');
   doc.setFontSize(18);
   doc.setTextColor(78,116,82);
-  doc.text('Care Companion', 20, 20);
+  doc.text('Mama Daily Tracker', 20, 20);
 
   doc.setFont('helvetica','normal');
   doc.setFontSize(11);
   doc.setTextColor(90,107,92);
-  doc.text(`${type === 'daily' ? 'Daily' : 'Weekly'} Report — ${today}`, 20, 28);
+  doc.text(`${type === 'daily' ? 'Daily' : 'Weekly'} Report — ${dateLabel}`, 20, 28);
   doc.text(`Patient: ${CONFIG.patientName}`, 20, 36);
   doc.setDrawColor(184,212,186);
   doc.line(20, 40, 190, 40);
 
   let y = 48;
   const addLine = (label, val) => {
-    doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(50,50,50);
-    doc.text(label, 20, y);
+    doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(50,50,50);
+    doc.text(String(label), 20, y);
     doc.setFont('helvetica','bold');
-    doc.text(String(val), 150, y, { align:'right' });
-    y += 8;
+    const valStr = String(val);
+    const valLines = doc.splitTextToSize(valStr, 80);
+    doc.text(valLines, 190, y, { align:'right' });
+    y += Math.max(7, valLines.length * 6);
     if (y > 270) { doc.addPage(); y = 20; }
+  };
+  const addSection = (title) => {
+    y += 4;
+    doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(78,116,82);
+    doc.text(title, 20, y); y += 8;
   };
 
   if (type === 'daily') {
     const meds  = TASKS.filter(t => t.isMed);
     const meals = TASKS.filter(t => t.isMeal);
-    doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(78,116,82);
-    doc.text('Daily Summary', 20, y); y += 8;
-    addLine('Medications', `${meds.filter(t=>STATE.tasks[t.id]?.status==='done').length} / ${meds.length}`);
-    addLine('Meals', `${meals.filter(t=>STATE.tasks[t.id]?.status==='done').length} / ${meals.length}`);
-    addLine('Water', `${netWaterTotal()} ml`);
-    addLine('Mood', STATE.reflection?.mood || 'Not logged');
-    y += 4;
+    const waterList  = data.water || [];
+    const totalWater = Math.max(0, waterList.reduce((s,w) => s + (w.deducted ? -w.amount_ml : w.amount_ml), 0));
 
-    if (STATE.symptoms.length) {
-      doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(78,116,82);
-      doc.text('Symptoms', 20, y); y += 8;
-      STATE.symptoms.forEach(s => {
+    addSection('Daily Summary');
+    addLine('Medications', `${meds.filter(t=>data.tasks?.[t.id]?.status==='done').length} / ${meds.length}`);
+    addLine('Meals', `${meals.filter(t=>data.tasks?.[t.id]?.status==='done').length} / ${meals.length}`);
+    addLine('Water', `${totalWater} ml`);
+    addLine('Mood', data.reflection?.mood || 'Not logged');
+
+    // Meal notes
+    const mealNotes = meals.filter(t => data.tasks?.[t.id]?.notes);
+    if (mealNotes.length) {
+      addSection('What Was Eaten');
+      mealNotes.forEach(t => addLine(t.label, data.tasks[t.id].notes));
+    }
+
+    // Symptoms
+    if ((data.symptoms || []).length) {
+      addSection('Symptoms');
+      const sev = {1:'Mild',2:'Low',3:'Moderate',4:'High',5:'Severe'};
+      data.symptoms.forEach(s => {
         const sym = SYMPTOMS.find(x => x.id === s.symptom);
-        addLine(sym?.label || s.symptom, `Severity: ${s.severity}/5`);
+        addLine(sym?.label || s.symptom, `Severity ${s.severity}/5 — ${sev[s.severity]}`);
       });
     }
 
-    if (STATE.reflection?.notes) {
-      y += 4;
-      doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(78,116,82);
-      doc.text('Reflection', 20, y); y += 8;
-      doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(50,50,50);
-      const lines = doc.splitTextToSize(STATE.reflection.notes, 160);
-      doc.text(lines, 20, y); y += lines.length * 6;
+    // Reflection
+    if (data.reflection?.notes) {
+      addSection('Reflection');
+      doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(50,50,50);
+      const lines = doc.splitTextToSize(data.reflection.notes, 160);
+      doc.text(lines, 20, y); y += lines.length * 6 + 4;
+    }
+
+    // Notes
+    if ((data.notes || []).length) {
+      addSection('Notes');
+      data.notes.forEach(n => {
+        doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(50,50,50);
+        const lines = doc.splitTextToSize(n.text, 160);
+        doc.text(lines, 20, y); y += lines.length * 6 + 4;
+        if (y > 270) { doc.addPage(); y = 20; }
+      });
+    }
+
+    // Calendar events for this date
+    const dayEvents = loadEvents().filter(e => e.date === dateKey);
+    if (dayEvents.length) {
+      addSection('Appointments');
+      const tLabel = { chemo:'Chemo Session', checkup:'Doctor Visit', other:'Appointment' };
+      dayEvents.forEach(ev => {
+        addLine(ev.title, `${tLabel[ev.type]}${ev.time ? ' · '+ev.time : ''}`);
+        if (ev.notes) {
+          doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(100,100,100);
+          doc.text(ev.notes, 25, y); y += 6;
+        }
+        if (ev.photos?.length) {
+          doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(100,100,100);
+          doc.text(`${ev.photos.length} photo attachment${ev.photos.length>1?'s':''} on file`, 25, y); y += 6;
+          ev.photos.forEach((url, i) => {
+            doc.setTextColor(78,116,82);
+            const shortUrl = url.length > 60 ? url.substring(0,57)+'...' : url;
+            doc.text(`  Photo ${i+1}: ${shortUrl}`, 25, y); y += 5;
+            if (y > 270) { doc.addPage(); y = 20; }
+          });
+        }
+        y += 2;
+      });
+    }
+
+  } else {
+    // Weekly
+    addSection('Weekly Summary — Last 7 Days');
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      const raw = localStorage.getItem(`cc_${key}`);
+      days.push({ dateKey: key, data: raw ? JSON.parse(raw) : null });
+    }
+    let tMeds=0,pMeds=0,tMeals=0,pMeals=0,tWater=0,dData=0;
+    const sCounts={};
+    const moods=[];
+    days.forEach(({data:d})=>{
+      if(!d)return; dData++;
+      const meds=TASKS.filter(t=>t.isMed); const meals=TASKS.filter(t=>t.isMeal);
+      pMeds+=meds.length; pMeals+=meals.length;
+      tMeds+=meds.filter(t=>d.tasks?.[t.id]?.status==='done').length;
+      tMeals+=meals.filter(t=>d.tasks?.[t.id]?.status==='done').length;
+      (d.water||[]).forEach(w=>{tWater+=w.deducted?-w.amount_ml:w.amount_ml;});
+      (d.symptoms||[]).forEach(s=>{sCounts[s.symptom]=(sCounts[s.symptom]||0)+1;});
+      if(d.reflection?.mood)moods.push(d.reflection.mood);
+    });
+    const avgW=dData?Math.round(Math.max(0,tWater)/dData):0;
+    const topS=Object.entries(sCounts).sort((a,b)=>b[1]-a[1])[0];
+    const mC=moods.reduce((a,m)=>{a[m]=(a[m]||0)+1;return a;},{});
+    const topM=Object.entries(mC).sort((a,b)=>b[1]-a[1])[0];
+    addLine('Medication adherence', `${pMeds?Math.round((tMeds/pMeds)*100):0}%`);
+    addLine('Meal completion', `${tMeals} / ${pMeals}`);
+    addLine('Avg. water/day', `${avgW} ml`);
+    addLine('Most frequent symptom', topS?(SYMPTOMS.find(s=>s.id===topS[0])?.label||topS[0])+` (${topS[1]}x)`:'None');
+    addLine('Mood trend', topM?`${topM[0]} (${topM[1]}/${moods.length} days)`:'—');
+    addLine('Days with data', `${dData} of 7`);
+
+    // Weekly calendar events
+    const allEvts = loadEvents();
+    const wStart  = days[0].dateKey;
+    const wEnd    = days[6].dateKey;
+    const wEvts   = allEvts.filter(e => e.date >= wStart && e.date <= wEnd);
+    if (wEvts.length) {
+      addSection('Appointments This Week');
+      const tLabel = { chemo:'Chemo Session', checkup:'Doctor Visit', other:'Appointment' };
+      wEvts.forEach(ev => {
+        const d = new Date(ev.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+        addLine(`${d} — ${ev.title}`, tLabel[ev.type]);
+        if (ev.notes) {
+          doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(100,100,100);
+          doc.text(ev.notes, 25, y); y += 6;
+        }
+        if (ev.photos?.length) {
+          doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(78,116,82);
+          doc.text(`  ${ev.photos.length} photo attachment${ev.photos.length>1?'s':''} on file`, 25, y); y += 5;
+        }
+        y += 2;
+      });
     }
   }
 
   doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(150,150,150);
-  doc.text('Generated by Care Companion · For family use only', 20, 285);
-  doc.save(`care-companion-${type}-${todayKey()}.pdf`);
+  doc.text(`Generated by Mama Daily Tracker · ${new Date().toLocaleDateString()} · For medical use`, 20, 285);
+  doc.save(`mama-daily-${type}-${dateKey}.pdf`);
   showToast('PDF downloaded!');
 }
 
@@ -2725,7 +2911,11 @@ function openEventDetail(eventId) {
   const ev = events.find(e => e.id === eventId);
   if (!ev) return;
 
-  const typeIcon  = { chemo:'💉', checkup:'🩺', other:'📅' };
+  const typeIcon = {
+    chemo:   `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--rose)" stroke-width="1.8"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2v-4M9 21H5a2 2 0 01-2-2v-4m0 0h18"/></svg>`,
+    checkup: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--sky-deep)" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+    other:   `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>`,
+  };
   const typeLabel = { chemo:'Chemo Session', checkup:'Doctor Visit', other:'Appointment' };
   const typeColor = { chemo:'var(--rose)', checkup:'var(--sky-deep)', other:'var(--gold)' };
 
@@ -2747,7 +2937,7 @@ function openEventDetail(eventId) {
 
   document.getElementById('event-detail-content').innerHTML = `
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-      <div style="width:44px;height:44px;border-radius:12px;background:rgba(0,0,0,0.05);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">${typeIcon[ev.type]}</div>
+      <div style="width:44px;height:44px;border-radius:12px;background:rgba(0,0,0,0.05);display:flex;align-items:center;justify-content:center;flex-shrink:0">${typeIcon[ev.type]}</div>
       <div>
         <div style="font-family:var(--font-serif);font-size:17px;font-weight:600;color:var(--ink)">${escapeHtml(ev.title)}</div>
         <div style="font-size:12px;color:${typeColor[ev.type]};font-weight:500;margin-top:2px">${typeLabel[ev.type]}</div>
