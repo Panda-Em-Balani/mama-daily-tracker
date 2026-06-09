@@ -1130,20 +1130,24 @@ let selectedEventType = 'chemo';
 let calYear, calMonth, calSelectedDate;
 
 /* ═══════════════════════════════════════════════════════════
-   SUPABASE ADAPTER
+   SUPABASE ADAPTER — read + write
 ═══════════════════════════════════════════════════════════ */
 const DB = {
+  headers() {
+    return {
+      'Content-Type': 'application/json',
+      'apikey': CONFIG.supabaseKey,
+      'Authorization': `Bearer ${CONFIG.supabaseKey}`,
+    };
+  },
+
   async insert(table, row) {
     if (!CONFIG.useSupabase) { this.queueWrite(table, row); return; }
+    setSyncStatus('syncing');
     try {
       const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/${table}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': CONFIG.supabaseKey,
-          'Authorization': `Bearer ${CONFIG.supabaseKey}`,
-          'Prefer': 'return=minimal',
-        },
+        headers: { ...this.headers(), 'Prefer': 'return=minimal' },
         body: JSON.stringify(row),
       });
       if (!res.ok) throw new Error(await res.text());
@@ -1154,12 +1158,59 @@ const DB = {
       setSyncStatus('error');
     }
   },
+
+  async upsert(table, row, onConflict) {
+    if (!CONFIG.useSupabase) return;
+    setSyncStatus('syncing');
+    try {
+      const url = `${CONFIG.supabaseUrl}/rest/v1/${table}?on_conflict=${onConflict}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { ...this.headers(), 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify(row),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      setSyncStatus('synced');
+    } catch(e) {
+      console.warn('DB upsert failed:', e);
+      setSyncStatus('error');
+    }
+  },
+
+  async select(table, params = '') {
+    if (!CONFIG.useSupabase) return null;
+    try {
+      const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/${table}?${params}`, {
+        headers: this.headers(),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      return await res.json();
+    } catch(e) {
+      console.warn('DB read failed:', e);
+      return null;
+    }
+  },
+
+  async delete(table, filter) {
+    if (!CONFIG.useSupabase) return;
+    try {
+      const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/${table}?${filter}`, {
+        method: 'DELETE',
+        headers: this.headers(),
+      });
+      if (!res.ok) throw new Error(await res.text());
+    } catch(e) {
+      console.warn('DB delete failed:', e);
+    }
+  },
+
   queueWrite(table, row) {
     const queue = JSON.parse(localStorage.getItem('syncQueue') || '[]');
     queue.push({ table, row, ts: Date.now() });
     localStorage.setItem('syncQueue', JSON.stringify(queue));
     setSyncStatus('error');
   },
+
   async flushQueue() {
     if (!CONFIG.useSupabase || !isOnline) return;
     const queue = JSON.parse(localStorage.getItem('syncQueue') || '[]');
@@ -1175,7 +1226,7 @@ const DB = {
 };
 
 /* ═══════════════════════════════════════════════════════════
-   LOCAL STORAGE
+   LOCAL STORAGE — backup only
 ═══════════════════════════════════════════════════════════ */
 const todayKey = () => new Date().toISOString().slice(0, 10);
 
@@ -1190,7 +1241,7 @@ function saveLocal() {
   }));
 }
 
-function loadLocal() {
+function loadLocalFallback() {
   const raw = localStorage.getItem(`cc_${todayKey()}`);
   if (!raw) return;
   const data = JSON.parse(raw);
@@ -1199,8 +1250,111 @@ function loadLocal() {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   EVENTS / SCHEDULE — persisted separately (not date-scoped)
+   SUPABASE READS — pull today's data into STATE
 ═══════════════════════════════════════════════════════════ */
+async function loadFromSupabase() {
+  if (!CONFIG.useSupabase) { loadLocalFallback(); return; }
+  setSyncStatus('syncing');
+
+  const today     = todayKey();
+  const todayStart = `${today}T00:00:00.000Z`;
+  const todayEnd   = `${today}T23:59:59.999Z`;
+  const filter     = `timestamp=gte.${todayStart}&timestamp=lte.${todayEnd}&order=timestamp.asc`;
+
+  try {
+    const [activities, waters, symptoms, reflections, notes] = await Promise.all([
+      DB.select('activity_log',    filter),
+      DB.select('water_log',       filter),
+      DB.select('symptom_log',     filter),
+      DB.select('daily_reflection',filter),
+      DB.select('notes',           filter),
+    ]);
+
+    // ── Tasks ──
+    if (activities?.length) {
+      STATE.tasks = {};
+      STATE.customTasks = {};
+      activities.forEach(a => {
+        const baseTask = TASKS.find(t => t.label === a.activity_type);
+        if (baseTask) {
+          STATE.tasks[baseTask.id] = { status: a.status, timestamp: a.timestamp, notes: a.notes || '' };
+        } else if (a.activity_type.startsWith('Snack: ') || !TASKS.find(t => t.label === a.activity_type)) {
+          // Custom task / snack — infer group from time
+          const hour = new Date(a.timestamp).getHours();
+          const group = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
+          if (!STATE.customTasks[group]) STATE.customTasks[group] = [];
+          const exists = STATE.customTasks[group].find(t => t.id === `sb_${a.id}`);
+          if (!exists) {
+            STATE.customTasks[group].push({
+              id: `sb_${a.id}`, label: a.activity_type.replace('Snack: ',''),
+              icon: '🍎', status: a.status, timestamp: a.timestamp, notes: a.notes || '',
+            });
+          }
+        }
+      });
+    }
+
+    // ── Water ──
+    if (waters?.length) {
+      STATE.water = waters.map(w => ({
+        timestamp: w.timestamp,
+        amount_ml: Math.abs(w.amount_ml),
+        note: '',
+        deducted: w.amount_ml < 0,
+      }));
+    }
+
+    // ── Symptoms ──
+    if (symptoms?.length) {
+      STATE.symptoms = symptoms.map(s => ({
+        timestamp: s.timestamp,
+        symptom:   s.symptom,
+        severity:  s.severity,
+        notes:     s.notes || '',
+        custom:    !SYMPTOMS.find(x => x.id === s.symptom),
+      }));
+    }
+
+    // ── Reflection (latest only) ──
+    if (reflections?.length) {
+      const last = reflections[reflections.length - 1];
+      STATE.reflection = { timestamp: last.timestamp, mood: last.mood, notes: last.notes || '' };
+    }
+
+    // ── Notes ──
+    if (notes?.length) {
+      STATE.notes = notes.map(n => ({ timestamp: n.timestamp, text: n.text }));
+    }
+
+    saveLocal();
+    setSyncStatus('synced');
+  } catch(e) {
+    console.warn('Supabase load failed, using local:', e);
+    loadLocalFallback();
+    setSyncStatus('error');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EVENTS / SCHEDULE — Supabase-backed
+═══════════════════════════════════════════════════════════ */
+async function loadEventsFromSupabase() {
+  if (!CONFIG.useSupabase) return loadEvents();
+  const rows = await DB.select('schedule_events', 'order=event_date.asc');
+  if (!rows) return loadEvents();
+  const events = rows.map(r => ({
+    id:     r.local_id || `ev_${r.id}`,
+    title:  r.title,
+    date:   r.event_date,
+    time:   r.event_time || '',
+    type:   r.event_type,
+    notes:  r.notes || '',
+    photos: r.photos || [],
+  }));
+  saveEvents(events);
+  return events;
+}
+
 function loadEvents() {
   return JSON.parse(localStorage.getItem('cc_events') || '[]');
 }
@@ -1209,23 +1363,70 @@ function saveEvents(events) {
 }
 
 /* ═══════════════════════════════════════════════════════════
+   FAMILY MESSAGES — Supabase-backed
+═══════════════════════════════════════════════════════════ */
+async function loadMessagesFromSupabase() {
+  if (!CONFIG.useSupabase) return loadMessages();
+  const rows = await DB.select('family_messages', 'order=author.asc');
+  if (!rows) return loadMessages();
+  const msgs = {};
+  rows.forEach(r => { msgs[r.author] = r.message; });
+  saveMessages(msgs);
+  return msgs;
+}
+
+function loadMessages() {
+  return JSON.parse(localStorage.getItem('cc_messages') || '{}');
+}
+function saveMessages(msgs) {
+  localStorage.setItem('cc_messages', JSON.stringify(msgs));
+}
+
+/* ═══════════════════════════════════════════════════════════
    NAVIGATION
 ═══════════════════════════════════════════════════════════ */
-function navigate(page) {
+async function navigate(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(`page-${page}`).classList.add('active');
   document.getElementById(`nav-${page}`).classList.add('active');
   document.querySelector('.scroll-area').scrollTop = 0;
-  if (page === 'report') renderReport();
-  if (page === 'schedule') renderCalendar();
+
+  // Refresh from Supabase on every tab switch
+  if (isOnline && CONFIG.useSupabase) {
+    if (page === 'home') {
+      await loadFromSupabase();
+      renderTasks(); renderWater(); updateDashStats();
+      await loadMessagesFromSupabase(); renderMessages();
+      renderTodayScheduleBanner();
+    } else if (page === 'water') {
+      await loadFromSupabase();
+      renderWater();
+    } else if (page === 'symptoms') {
+      await loadFromSupabase();
+      renderSymptomGrid(); renderSymptomLog();
+    } else if (page === 'notes') {
+      await loadFromSupabase();
+      renderNotes(); renderReflectionCard();
+    } else if (page === 'schedule') {
+      await loadEventsFromSupabase();
+      renderCalendar();
+    } else if (page === 'report') {
+      await loadFromSupabase();
+      renderReport();
+    }
+  } else {
+    if (page === 'report') renderReport();
+    if (page === 'schedule') renderCalendar();
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════════════════════ */
-function init() {
-  loadLocal();
+async function init() {
+  // Show local data instantly while Supabase loads
+  loadLocalFallback();
   setupTopbar();
   setupHero();
   renderTasks();
@@ -1242,12 +1443,28 @@ function init() {
 
   // Calendar defaults
   const now = new Date();
-  calYear = now.getFullYear();
+  calYear  = now.getFullYear();
   calMonth = now.getMonth();
   calSelectedDate = todayKey();
-
-  // Custom severity row init
   renderCustomSeverityRow();
+
+  // Load fresh data from Supabase
+  if (isOnline) {
+    await loadFromSupabase();
+    renderTasks();
+    renderWater();
+    renderSymptomGrid();
+    renderSymptomLog();
+    renderNotes();
+    renderReflectionCard();
+    updateDashStats();
+
+    await loadMessagesFromSupabase();
+    renderMessages();
+
+    await loadEventsFromSupabase();
+    renderTodayScheduleBanner();
+  }
 
   DB.flushQueue();
 }
@@ -2480,13 +2697,21 @@ function selectAuthor(author) {
   });
 }
 
-function confirmMessage() {
+async function confirmMessage() {
   if (!selectedAuthor) { showToast('Pick who this is from'); return; }
   const text = document.getElementById('message-input').value.trim();
   if (!text) { showToast('Write a message first'); return; }
   const msgs = loadMessages();
   msgs[selectedAuthor] = text;
   saveMessages(msgs);
+
+  // Sync to Supabase — upsert by author
+  await DB.upsert('family_messages', {
+    author:     selectedAuthor,
+    message:    text,
+    updated_at: new Date().toISOString(),
+  }, 'author');
+
   closeModal('modal-message');
   renderMessages();
   showToast(`Message from ${selectedAuthor} saved 💚`);
@@ -2744,6 +2969,17 @@ confirmAddEvent = async function() {
     }
 
     saveEvents(events);
+
+    await DB.upsert('schedule_events', {
+      local_id:   ev.id,
+      event_date: ev.date,
+      event_time: ev.time || null,
+      event_type: ev.type,
+      title:      ev.title,
+      notes:      ev.notes || null,
+      photos:     ev.photos || [],
+    }, 'local_id');
+
     editingEventId = null;
     showToast('✏️ Event updated!');
 
@@ -2765,14 +3001,16 @@ confirmAddEvent = async function() {
     events.push(ev);
     saveEvents(events);
 
-    DB.insert('schedule_events', {
+    await DB.upsert('schedule_events', {
+      local_id:   ev.id,
       timestamp:  new Date().toISOString(),
       event_date: date,
       event_time: ev.time || null,
       event_type: ev.type,
       title:      ev.title,
       notes:      ev.notes || null,
-    });
+      photos:     ev.photos || [],
+    }, 'local_id');
 
     showToast('📅 Event saved!');
   }
