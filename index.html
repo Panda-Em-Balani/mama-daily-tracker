@@ -451,6 +451,56 @@
       cursor: pointer;
     }
 
+    /* ─── READ ONLY MODE ─────────────────────────────────────── */
+    .readonly-banner {
+      background: linear-gradient(135deg, #c9a84c, #a07830);
+      color: white; text-align: center;
+      padding: 10px 16px; font-size: 13px; font-weight: 500;
+      letter-spacing: 0.2px; flex-shrink: 0; display: none;
+    }
+    .readonly-banner.visible { display: block; }
+    body.readonly .task-btn, body.readonly .section-add-btn,
+    body.readonly .btn-primary, body.readonly .btn-secondary,
+    body.readonly .water-btn, body.readonly .symptom-chip,
+    body.readonly .severity-btn, body.readonly .mood-btn,
+    body.readonly .cal-nav-btn, body.readonly .event-delete,
+    body.readonly .event-type-btn, body.readonly textarea,
+    body.readonly input { pointer-events: none; opacity: 0.5; }
+    body.readonly .section-add-btn { display: none; }
+
+    /* ─── CONFIRM DIALOG ─────────────────────────────────────── */
+    .confirm-backdrop {
+      position: fixed; inset: 0; background: rgba(45,58,46,0.5);
+      z-index: 300; display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s; padding: 24px;
+    }
+    .confirm-backdrop.open { opacity: 1; pointer-events: all; }
+    .confirm-box {
+      background: white; border-radius: var(--radius-lg);
+      padding: 24px; width: 100%; max-width: 320px;
+      transform: scale(0.95); transition: transform 0.2s; box-shadow: var(--shadow-lg);
+    }
+    .confirm-backdrop.open .confirm-box { transform: scale(1); }
+    .confirm-box-title { font-family: var(--font-serif); font-size: 17px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
+    .confirm-box-sub { font-size: 13px; color: var(--ink-muted); margin-bottom: 20px; line-height: 1.5; }
+    .confirm-box-actions { display: flex; gap: 10px; }
+    .confirm-cancel { flex: 1; height: 44px; border-radius: var(--radius-md); border: 1.5px solid rgba(122,158,126,0.25); background: transparent; color: var(--ink-muted); font-family: var(--font-sans); font-size: 14px; font-weight: 500; cursor: pointer; }
+    .confirm-ok { flex: 1; height: 44px; border-radius: var(--radius-md); border: none; background: var(--rose); color: white; font-family: var(--font-sans); font-size: 14px; font-weight: 500; cursor: pointer; }
+
+    /* ─── PHOTO UPLOAD ───────────────────────────────────────── */
+    .photo-upload-area {
+      border: 2px dashed rgba(122,158,126,0.3); border-radius: var(--radius-md);
+      padding: 20px; text-align: center; margin-top: 8px; cursor: pointer; transition: all 0.2s; background: var(--cream);
+    }
+    .photo-upload-area:active { background: var(--sage-pale); }
+    .photo-upload-icon { font-size: 28px; margin-bottom: 6px; }
+    .photo-upload-label { font-size: 13px; color: var(--ink-muted); }
+    .photo-preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+    .photo-preview-item { position: relative; aspect-ratio: 1; border-radius: var(--radius-sm); overflow: hidden; }
+    .photo-preview-item img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-preview-remove { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .photo-uploading { font-size: 12px; color: var(--sage-deep); margin-top: 6px; text-align: center; }
+
     /* ─── SYNC DOT ───────────────────────────────────────────── */
     .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--sage-light); display: inline-block; }
     .sync-dot.syncing { background: var(--gold); animation: pulse 1s infinite; }
@@ -507,8 +557,15 @@
     <div class="topbar-right">
       <span class="offline-badge" id="offline-badge">Offline</span>
       <span class="sync-dot" id="sync-dot" title="Sync status"></span>
+      <button onclick="toggleReadOnly()" id="readonly-btn" title="Toggle view only mode"
+        style="background:none;border:none;font-size:18px;cursor:pointer;padding:2px;-webkit-tap-highlight-color:transparent">🔓</button>
     </div>
   </header>
+
+  <!-- READ ONLY BANNER -->
+  <div class="readonly-banner" id="readonly-banner">
+    🔒 View Only Mode — tap the lock in the top bar to edit
+  </div>
 
   <!-- SCROLL AREA -->
   <main class="scroll-area">
@@ -719,6 +776,21 @@
   </nav>
 </div>
 
+<!-- CONFIRM DIALOG -->
+<div class="confirm-backdrop" id="confirm-dialog">
+  <div class="confirm-box">
+    <div class="confirm-box-title" id="confirm-title">Are you sure?</div>
+    <div class="confirm-box-sub" id="confirm-sub">This action cannot be undone.</div>
+    <div class="confirm-box-actions">
+      <button class="confirm-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="confirm-ok" id="confirm-ok-btn">Remove</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden photo file input -->
+<input type="file" id="photo-file-input" accept="image/*" multiple style="display:none" onchange="handlePhotoSelected(event)" />
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -787,8 +859,8 @@
 <div class="modal-backdrop" id="modal-add-event">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title">Add Schedule Event</div>
-    <div class="modal-sub">Chemo session, checkup, or other appointment</div>
+    <div class="modal-title" id="event-modal-title">Add Schedule Event</div>
+    <div class="modal-sub" id="event-modal-sub">Chemo session, checkup, or other appointment</div>
     <label class="form-label">Event Title</label>
     <input type="text" id="event-title-input" placeholder="e.g. Chemo Session 4, Dr. Santos Checkup…" />
     <label class="form-label">Date</label>
@@ -803,9 +875,18 @@
     </div>
     <label class="form-label">Notes (optional)</label>
     <textarea id="event-notes-input" rows="2" placeholder="Any details…"></textarea>
+    <label class="form-label">Photos (optional)</label>
+    <!-- Existing photos (shown in edit mode) -->
+    <div id="existing-photos-grid" class="photo-preview-grid" style="margin-bottom:8px"></div>
+    <div class="photo-upload-area" onclick="document.getElementById('photo-file-input').click()">
+      <div class="photo-upload-icon">📷</div>
+      <div class="photo-upload-label" id="photo-upload-label-text">Tap to attach medical reports or photos</div>
+    </div>
+    <div class="photo-preview-grid" id="event-photo-previews"></div>
+    <div class="photo-uploading" id="photo-uploading-label" style="display:none">Uploading photos…</div>
     <div class="modal-actions">
       <button class="modal-btn-cancel" onclick="closeModal('modal-add-event')">Cancel</button>
-      <button class="modal-btn-confirm" onclick="confirmAddEvent()">Save Event</button>
+      <button class="modal-btn-confirm" id="event-modal-save-btn" onclick="confirmAddEvent()">Save Event</button>
     </div>
   </div>
 </div>
@@ -819,9 +900,9 @@ const CONFIG = {
   callName:         "Mama",     // used in on-screen motivational UI
   waterGoalMl:      2000,
   waterGoalGlasses: 8,
-  supabaseUrl:      "https://jocjrgsoilqpxmcqreup.supabase.co",
-  supabaseKey:      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvY2pyZ3NvaWxxcHhtY3FyZXVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NDQ2OTksImV4cCI6MjA5NjUyMDY5OX0.WwCD4c4LzqWsbaH5xYOQuyi8BbrW3JxJs99NPPRHNag",
-  useSupabase:      true,      // set true after connecting Supabase
+  supabaseUrl:      "YOUR_SUPABASE_URL",
+  supabaseKey:      "YOUR_SUPABASE_ANON_KEY",
+  useSupabase:      false,      // set true after connecting Supabase
 };
 
 /* ═══════════════════════════════════════════════════════════
@@ -1307,13 +1388,19 @@ function renderWater() {
     updateDashStats();
     return;
   }
-  logEl.innerHTML = [...STATE.water].reverse().map(w => `
+  logEl.innerHTML = [...STATE.water].reverse().map((w, ri) => {
+    const i = STATE.water.length - 1 - ri;
+    return `
     <div class="water-log-item ${w.deducted ? 'deducted' : ''}">
       <div>
         <span style="font-size:14px;font-weight:500">${w.deducted ? '−' : '+'} ${w.amount_ml} ml${w.note ? ` · <em style="font-size:12px;color:var(--ink-muted)">${escapeHtml(w.note)}</em>` : ''}</span>
       </div>
-      <span style="font-size:11px;color:var(--ink-muted)">${new Date(w.timestamp).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</span>
-    </div>`).join('');
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;color:var(--ink-muted)">${new Date(w.timestamp).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</span>
+        <button onclick="confirmDeleteWater(${i})" style="background:rgba(201,122,122,0.12);border:none;color:var(--rose);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">✕</button>
+      </div>
+    </div>`;
+  }).join('');
 
   updateDashStats();
 }
@@ -1472,7 +1559,8 @@ function renderSymptomLog() {
     return;
   }
   const severityLabel = {1:'Mild',2:'Low',3:'Moderate',4:'High',5:'Severe'};
-  el.innerHTML = [...STATE.symptoms].reverse().map(s => {
+  el.innerHTML = [...STATE.symptoms].reverse().map((s, ri) => {
+    const i = STATE.symptoms.length - 1 - ri;
     const sym = SYMPTOMS.find(x => x.id === s.symptom);
     const icon  = sym?.icon || '•';
     const label = sym?.label || s.symptom;
@@ -1484,7 +1572,10 @@ function renderSymptomLog() {
           ${s.notes ? `<div style="font-size:12px;color:var(--ink-muted);margin-top:2px">${escapeHtml(s.notes)}</div>` : ''}
           <div class="symptom-entry-time">${new Date(s.timestamp).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div>
         </div>
-        <div class="symptom-entry-badge">Lvl ${s.severity} – ${severityLabel[s.severity]}</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <div class="symptom-entry-badge">Lvl ${s.severity} – ${severityLabel[s.severity]}</div>
+          <button onclick="confirmDeleteSymptom(${i})" style="background:rgba(201,122,122,0.12);border:none;color:var(--rose);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">✕ Remove</button>
+        </div>
       </div>`;
   }).join('');
 }
@@ -1577,7 +1668,10 @@ function renderCalEvents() {
         <div class="event-title">${escapeHtml(ev.title)}</div>
         <div class="event-meta">${ev.time ? ev.time + ' · ' : ''}${ev.type.charAt(0).toUpperCase()+ev.type.slice(1)}${ev.notes ? ' · ' + escapeHtml(ev.notes) : ''}</div>
       </div>
-      <button class="event-delete" onclick="deleteEvent('${ev.id}')" title="Delete event">✕</button>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0">
+        <button class="event-delete" onclick="openEditEvent('${ev.id}')" title="Edit event" style="color:var(--sage-deep);font-size:13px;font-weight:500;padding:3px 8px;background:var(--sage-pale);border-radius:6px;border:none;cursor:pointer">✏️ Edit</button>
+        <button class="event-delete" onclick="deleteEvent('${ev.id}')" title="Delete event">✕</button>
+      </div>
     </div>`).join('');
 }
 
@@ -1683,10 +1777,11 @@ function renderTodayScheduleBanner() {
    NOTES + REFLECTION
 ═══════════════════════════════════════════════════════════ */
 function selectMood(mood) {
-  selectedMood = mood;
-  document.getElementById('mood-good').className      = 'mood-btn' + (mood==='Good'      ? ' selected-good'      : '');
-  document.getElementById('mood-okay').className      = 'mood-btn' + (mood==='Okay'      ? ' selected-okay'      : '');
-  document.getElementById('mood-difficult').className = 'mood-btn' + (mood==='Difficult' ? ' selected-difficult' : '');
+  // Tapping same mood deselects it
+  selectedMood = selectedMood === mood ? null : mood;
+  document.getElementById('mood-good').className      = 'mood-btn' + (selectedMood==='Good'      ? ' selected-good'      : '');
+  document.getElementById('mood-okay').className      = 'mood-btn' + (selectedMood==='Okay'      ? ' selected-okay'      : '');
+  document.getElementById('mood-difficult').className = 'mood-btn' + (selectedMood==='Difficult' ? ' selected-difficult' : '');
 }
 
 function saveReflection() {
@@ -1965,6 +2060,319 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.warn('SW failed:', err));
   });
 }
+
+/* ═══════════════════════════════════════════════════════════
+   READ ONLY MODE
+═══════════════════════════════════════════════════════════ */
+let isReadOnly = false;
+function toggleReadOnly() {
+  isReadOnly = !isReadOnly;
+  document.body.classList.toggle('readonly', isReadOnly);
+  document.getElementById('readonly-banner').classList.toggle('visible', isReadOnly);
+  document.getElementById('readonly-btn').textContent = isReadOnly ? '🔒' : '🔓';
+  showToast(isReadOnly ? '🔒 View only mode on' : '🔓 Edit mode restored');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CONFIRM DIALOG
+═══════════════════════════════════════════════════════════ */
+let confirmCallback = null;
+function showConfirm(title, sub, okLabel, cb) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-sub').textContent   = sub;
+  document.getElementById('confirm-ok-btn').textContent = okLabel || 'Remove';
+  confirmCallback = cb;
+  document.getElementById('confirm-dialog').classList.add('open');
+}
+function closeConfirm() {
+  document.getElementById('confirm-dialog').classList.remove('open');
+  confirmCallback = null;
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('confirm-ok-btn').addEventListener('click', () => {
+    if (confirmCallback) confirmCallback();
+    closeConfirm();
+  });
+  document.getElementById('confirm-dialog').addEventListener('click', function(e) {
+    if (e.target === this) closeConfirm();
+  });
+});
+
+/* ─── Delete water entry ──────────────────────────────────── */
+function confirmDeleteWater(index) {
+  showConfirm(
+    'Remove this entry?',
+    'This water log entry will be removed from today\'s record.',
+    'Remove',
+    () => {
+      STATE.water.splice(index, 1);
+      saveLocal();
+      renderWater();
+      showToast('Entry removed');
+    }
+  );
+}
+
+/* ─── Delete symptom entry ────────────────────────────────── */
+function confirmDeleteSymptom(index) {
+  showConfirm(
+    'Remove this symptom?',
+    'This symptom entry will be removed from today\'s log.',
+    'Remove',
+    () => {
+      STATE.symptoms.splice(index, 1);
+      saveLocal();
+      renderSymptomLog();
+      showToast('Symptom removed');
+    }
+  );
+}
+
+/* ─── Wrap existing undo/delete with confirmation ─────────── */
+const _undoTask = undoTask;
+undoTask = function(taskId) {
+  showConfirm('Undo this task?', 'This will reset the task back to pending.', 'Undo', () => _undoTask(taskId));
+};
+
+const _undoCustomTask = undoCustomTask;
+undoCustomTask = function(group, id) {
+  showConfirm('Undo this item?', 'This will reset it back to pending.', 'Undo', () => _undoCustomTask(group, id));
+};
+
+const _deleteCustomTask = deleteCustomTask;
+deleteCustomTask = function(group, id) {
+  showConfirm('Delete this item?', 'This custom entry will be permanently removed.', 'Delete', () => _deleteCustomTask(group, id));
+};
+
+const _deleteEvent = deleteEvent;
+deleteEvent = function(id) {
+  showConfirm('Delete this event?', 'This appointment will be permanently removed from the schedule.', 'Delete', () => _deleteEvent(id));
+};
+
+/* ═══════════════════════════════════════════════════════════
+   PHOTO UPLOAD
+═══════════════════════════════════════════════════════════ */
+let pendingEventPhotos = []; // [{ file, previewUrl, uploadedUrl }]
+
+function handlePhotoSelected(event) {
+  const files = Array.from(event.target.files);
+  if (!files.length) return;
+
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      pendingEventPhotos.push({ file, previewUrl: e.target.result, uploadedUrl: null });
+      renderEventPhotoPreviews();
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Reset input so same file can be selected again
+  event.target.value = '';
+}
+
+function renderEventPhotoPreviews() {
+  const grid = document.getElementById('event-photo-previews');
+  grid.innerHTML = pendingEventPhotos.map((p, i) => `
+    <div class="photo-preview-item">
+      <img src="${p.previewUrl}" alt="photo ${i+1}" />
+      <button class="photo-preview-remove" onclick="removeEventPhoto(${i})">✕</button>
+    </div>`).join('');
+}
+
+function removeEventPhoto(index) {
+  pendingEventPhotos.splice(index, 1);
+  renderEventPhotoPreviews();
+}
+
+async function uploadPhotosToSupabase(eventId) {
+  if (!CONFIG.useSupabase || !pendingEventPhotos.length) return [];
+  const uploadedUrls = [];
+  document.getElementById('photo-uploading-label').style.display = 'block';
+
+  for (const photo of pendingEventPhotos) {
+    try {
+      const ext      = photo.file.name.split('.').pop();
+      const filename = `events/${eventId}/${Date.now()}.${ext}`;
+      const res = await fetch(`${CONFIG.supabaseUrl}/storage/v1/object/medical-photos/${filename}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${CONFIG.supabaseKey}`,
+          'Content-Type': photo.file.type,
+        },
+        body: photo.file,
+      });
+      if (res.ok) {
+        const url = `${CONFIG.supabaseUrl}/storage/v1/object/public/medical-photos/${filename}`;
+        uploadedUrls.push(url);
+      }
+    } catch(e) {
+      console.warn('Photo upload failed:', e);
+    }
+  }
+
+  document.getElementById('photo-uploading-label').style.display = 'none';
+  return uploadedUrls;
+}
+
+/* Override confirmAddEvent to handle photos */
+const _confirmAddEvent = confirmAddEvent;
+let editingEventId = null; // null = add mode, string = edit mode
+
+confirmAddEvent = async function() {
+  const title = document.getElementById('event-title-input').value.trim();
+  const date  = document.getElementById('event-date-input').value;
+  if (!title) { showToast('Add a title for the event'); return; }
+  if (!date)  { showToast('Pick a date'); return; }
+
+  const events = loadEvents();
+
+  if (editingEventId) {
+    // ── EDIT MODE ──
+    const ev = events.find(e => e.id === editingEventId);
+    if (!ev) return;
+
+    ev.title = title;
+    ev.date  = date;
+    ev.time  = document.getElementById('event-time-input').value;
+    ev.type  = selectedEventType;
+    ev.notes = document.getElementById('event-notes-input').value.trim();
+
+    // Upload any new photos and append to existing
+    if (pendingEventPhotos.length) {
+      const newUrls = await uploadPhotosToSupabase(ev.id);
+      ev.photos = [...(ev.photos || []), ...newUrls];
+    }
+
+    saveEvents(events);
+    editingEventId = null;
+    showToast('✏️ Event updated!');
+
+  } else {
+    // ── ADD MODE ──
+    const ev = {
+      id:    `ev_${Date.now()}`,
+      title, date,
+      time:  document.getElementById('event-time-input').value,
+      type:  selectedEventType,
+      notes: document.getElementById('event-notes-input').value.trim(),
+      photos: [],
+    };
+
+    if (pendingEventPhotos.length) {
+      ev.photos = await uploadPhotosToSupabase(ev.id);
+    }
+
+    events.push(ev);
+    saveEvents(events);
+
+    DB.insert('schedule_events', {
+      timestamp:  new Date().toISOString(),
+      event_date: date,
+      event_time: ev.time || null,
+      event_type: ev.type,
+      title:      ev.title,
+      notes:      ev.notes || null,
+    });
+
+    showToast('📅 Event saved!');
+  }
+
+  pendingEventPhotos = [];
+  renderEventPhotoPreviews();
+  document.getElementById('existing-photos-grid').innerHTML = '';
+  closeModal('modal-add-event');
+  calSelectedDate = date;
+  renderCalendar();
+  renderTodayScheduleBanner();
+};
+
+function openEditEvent(eventId) {
+  const events = loadEvents();
+  const ev = events.find(e => e.id === eventId);
+  if (!ev) return;
+
+  editingEventId = eventId;
+  pendingEventPhotos = [];
+
+  // Set modal to edit mode
+  document.getElementById('event-modal-title').textContent = 'Edit Event';
+  document.getElementById('event-modal-sub').textContent   = 'Update the details or add photos';
+  document.getElementById('event-modal-save-btn').textContent = 'Save Changes';
+
+  // Fill in existing values
+  document.getElementById('event-title-input').value = ev.title;
+  document.getElementById('event-date-input').value  = ev.date;
+  document.getElementById('event-time-input').value  = ev.time || '';
+  document.getElementById('event-notes-input').value = ev.notes || '';
+
+  selectedEventType = ev.type || 'chemo';
+  updateEventTypeBtns();
+
+  // Show existing photos with option to remove
+  const existingGrid = document.getElementById('existing-photos-grid');
+  if (ev.photos?.length) {
+    existingGrid.innerHTML = ev.photos.map((url, i) => `
+      <div class="photo-preview-item">
+        <img src="${url}" alt="photo ${i+1}" />
+        <button class="photo-preview-remove" onclick="removeExistingPhoto('${eventId}', ${i})">✕</button>
+      </div>`).join('');
+    document.getElementById('photo-upload-label-text').textContent = 'Tap to add more photos';
+  } else {
+    existingGrid.innerHTML = '';
+    document.getElementById('photo-upload-label-text').textContent = 'Tap to attach medical reports or photos';
+  }
+
+  renderEventPhotoPreviews();
+  document.getElementById('photo-uploading-label').style.display = 'none';
+  openModal('modal-add-event');
+}
+
+function removeExistingPhoto(eventId, photoIndex) {
+  const events = loadEvents();
+  const ev = events.find(e => e.id === eventId);
+  if (!ev || !ev.photos) return;
+  ev.photos.splice(photoIndex, 1);
+  saveEvents(events);
+  // Re-render existing photos in the modal
+  openEditEvent(eventId);
+  showToast('Photo removed');
+}
+
+/* Show photos on event cards */
+const _renderCalEvents = renderCalEvents;
+renderCalEvents = function() {
+  _renderCalEvents();
+  // Append photo thumbnails to event cards that have photos
+  const events = loadEvents();
+  const filtered = events.filter(e => e.date === calSelectedDate && e.photos?.length);
+  filtered.forEach(ev => {
+    const card = document.getElementById(`event-${ev.id}`);
+    if (!card) return;
+    const thumbs = ev.photos.map(url =>
+      `<a href="${url}" target="_blank"><img src="${url}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid rgba(0,0,0,0.1)" /></a>`
+    ).join('');
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;padding-left:34px';
+    row.innerHTML = thumbs;
+    card.querySelector('.event-body').appendChild(row);
+  });
+};
+
+/* Reset photos when opening add event modal */
+const _openAddEvent = openAddEvent;
+openAddEvent = function() {
+  editingEventId = null;
+  pendingEventPhotos = [];
+  document.getElementById('event-modal-title').textContent    = 'Add Schedule Event';
+  document.getElementById('event-modal-sub').textContent      = 'Chemo session, checkup, or other appointment';
+  document.getElementById('event-modal-save-btn').textContent = 'Save Event';
+  document.getElementById('existing-photos-grid').innerHTML   = '';
+  document.getElementById('photo-upload-label-text').textContent = 'Tap to attach medical reports or photos';
+  renderEventPhotoPreviews();
+  document.getElementById('photo-uploading-label').style.display = 'none';
+  _openAddEvent();
+};
 
 /* ─── START ──────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', init);
