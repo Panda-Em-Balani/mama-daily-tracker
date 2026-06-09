@@ -1044,7 +1044,7 @@ const CONFIG = {
   callName:         "Mama",     // used in on-screen motivational UI
   waterGoalMl:      2000,
   waterGoalGlasses: 8,
- supabaseUrl:      "https://jocjrgsoilqpxmcqreup.supabase.co",
+  supabaseUrl:      "https://jocjrgsoilqpxmcqreup.supabase.co",
   supabaseKey:      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvY2pyZ3NvaWxxcHhtY3FyZXVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NDQ2OTksImV4cCI6MjA5NjUyMDY5OX0.WwCD4c4LzqWsbaH5xYOQuyi8BbrW3JxJs99NPPRHNag",
   useSupabase:      true,      // set true after connecting Supabase
 };
@@ -1640,7 +1640,12 @@ function commitMarkTask(taskId, status, notes) {
   showToast(status === 'done' ? '✓ Marked as done!' : 'Skipped');
 }
 
-function undoTask(taskId) {
+async function undoTask(taskId) {
+  const entry = STATE.tasks[taskId];
+  if (entry?.timestamp) {
+    const task = TASKS.find(t => t.id === taskId);
+    await DB.delete('activity_log', `timestamp=eq.${encodeURIComponent(entry.timestamp)}&activity_type=eq.${encodeURIComponent(task?.label || taskId)}`);
+  }
   delete STATE.tasks[taskId];
   saveLocal();
   renderTasks();
@@ -1691,16 +1696,24 @@ function commitMarkCustomTask(group, id, status, notes) {
   showToast(status === 'done' ? '✓ Logged!' : 'Skipped');
 }
 
-function undoCustomTask(group, id) {
+async function undoCustomTask(group, id) {
   const tasks = STATE.customTasks[group] || [];
-  const task = tasks.find(t => t.id === id);
+  const task  = tasks.find(t => t.id === id);
+  if (task?.timestamp) {
+    await DB.delete('activity_log', `timestamp=eq.${encodeURIComponent(task.timestamp)}&activity_type=eq.${encodeURIComponent(task.label)}`);
+  }
   if (task) { task.status = 'pending'; task.timestamp = null; task.notes = ''; }
   saveLocal();
   renderTasks();
 }
 
-function deleteCustomTask(group, id) {
-  STATE.customTasks[group] = (STATE.customTasks[group] || []).filter(t => t.id !== id);
+async function deleteCustomTask(group, id) {
+  const tasks = STATE.customTasks[group] || [];
+  const task  = tasks.find(t => t.id === id);
+  if (task?.timestamp) {
+    await DB.delete('activity_log', `timestamp=eq.${encodeURIComponent(task.timestamp)}&activity_type=eq.${encodeURIComponent(task.label)}`);
+  }
+  STATE.customTasks[group] = tasks.filter(t => t.id !== id);
   saveLocal();
   renderTasks();
 }
@@ -2090,14 +2103,25 @@ function renderCalEvents() {
 }
 
 async function deleteEvent(id) {
-  // Delete from Supabase first
-  await DB.delete('schedule_events', `local_id=eq.${id}`);
-  let events = loadEvents().filter(e => e.id !== id);
-  saveEvents(events);
+  const events = loadEvents();
+  const ev = events.find(e => e.id === id);
+  if (ev) {
+    // Try local_id first, fall back to matching by title + date
+    await DB.delete('schedule_events', `local_id=eq.${encodeURIComponent(id)}`);
+    await DB.delete('schedule_events', `title=eq.${encodeURIComponent(ev.title)}&event_date=eq.${ev.date}`);
+  }
+  saveEvents(events.filter(e => e.id !== id));
   renderCalendar();
   renderTodayScheduleBanner();
   showToast('Event removed');
 }
+
+const _deleteEvent = deleteEvent;
+deleteEvent = function(id) {
+  showConfirm('Delete this event?', 'This appointment will be permanently removed from the schedule.', 'Delete', async () => {
+    await _deleteEvent(id);
+  });
+};
 
 /* Add event modal */
 function openAddEvent() {
@@ -2243,14 +2267,15 @@ function confirmDeleteReflection() {
     'Remove today\'s reflection?',
     'This will clear the mood and notes logged for today.',
     'Remove',
-    () => {
+    async () => {
+      if (STATE.reflection?.timestamp) {
+        await DB.delete('daily_reflection', `timestamp=eq.${encodeURIComponent(STATE.reflection.timestamp)}`);
+      }
       STATE.reflection = null;
       saveLocal();
       updateDashStats();
       renderReflectionCard();
-      // Also update the mood detail popup if open
-      const contentEl = document.getElementById('dash-detail-content');
-      if (contentEl && document.getElementById('modal-dash-detail').classList.contains('open')) {
+      if (document.getElementById('modal-dash-detail').classList.contains('open')) {
         closeModal('modal-dash-detail');
       }
       showToast('Reflection removed');
@@ -2277,11 +2302,35 @@ function renderNotes() {
     el.innerHTML = '<div class="empty-state"><div class="empty-icon">📝</div><p>No notes yet today.</p></div>';
     return;
   }
-  el.innerHTML = [...STATE.notes].reverse().map(n => `
-    <div class="note-item">
-      <div class="note-item-text">${escapeHtml(n.text)}</div>
-      <div class="note-item-time">${new Date(n.timestamp).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div>
-    </div>`).join('');
+  el.innerHTML = [...STATE.notes].reverse().map((n, ri) => {
+    const i = STATE.notes.length - 1 - ri;
+    return `
+      <div class="note-item">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div class="note-item-text">${escapeHtml(n.text)}</div>
+          <button onclick="confirmDeleteNote(${i})" style="background:rgba(201,122,122,0.12);border:none;color:var(--rose);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;flex-shrink:0">✕</button>
+        </div>
+        <div class="note-item-time">${new Date(n.timestamp).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div>
+      </div>`;
+  }).join('');
+}
+
+function confirmDeleteNote(index) {
+  showConfirm(
+    'Delete this note?',
+    'This note will be permanently removed.',
+    'Delete',
+    async () => {
+      const entry = STATE.notes[index];
+      if (entry?.timestamp) {
+        await DB.delete('notes', `timestamp=eq.${encodeURIComponent(entry.timestamp)}`);
+      }
+      STATE.notes.splice(index, 1);
+      saveLocal();
+      renderNotes();
+      showToast('Note deleted');
+    }
+  );
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -3060,28 +3109,22 @@ function confirmDeleteSymptom(index) {
 const _undoTask = undoTask;
 undoTask = function(taskId) {
   showConfirm('Undo this task?', 'This will reset the task back to pending.', 'Undo', async () => {
-    const entry = STATE.tasks[taskId];
-    if (entry?.timestamp) {
-      const task = TASKS.find(t => t.id === taskId);
-      await DB.delete('activity_log', `timestamp=eq.${encodeURIComponent(entry.timestamp)}&activity_type=eq.${encodeURIComponent(task?.label || taskId)}`);
-    }
-    _undoTask(taskId);
+    await _undoTask(taskId);
   });
 };
 
 const _undoCustomTask = undoCustomTask;
 undoCustomTask = function(group, id) {
-  showConfirm('Undo this item?', 'This will reset it back to pending.', 'Undo', () => _undoCustomTask(group, id));
+  showConfirm('Undo this item?', 'This will reset it back to pending.', 'Undo', async () => {
+    await _undoCustomTask(group, id);
+  });
 };
 
 const _deleteCustomTask = deleteCustomTask;
 deleteCustomTask = function(group, id) {
-  showConfirm('Delete this item?', 'This custom entry will be permanently removed.', 'Delete', () => _deleteCustomTask(group, id));
-};
-
-const _deleteEvent = deleteEvent;
-deleteEvent = function(id) {
-  showConfirm('Delete this event?', 'This appointment will be permanently removed from the schedule.', 'Delete', () => _deleteEvent(id));
+  showConfirm('Delete this item?', 'This custom entry will be permanently removed.', 'Delete', async () => {
+    await _deleteCustomTask(group, id);
+  });
 };
 
 /* ═══════════════════════════════════════════════════════════
