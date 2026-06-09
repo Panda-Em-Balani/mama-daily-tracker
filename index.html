@@ -1,0 +1,1973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Mama Daily" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#7a9e7e" />
+  <title>Mama Daily Tracker</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    /* ─── DESIGN TOKENS ──────────────────────────────────────── */
+    :root {
+      --sage:        #7a9e7e;
+      --sage-light:  #b8d4ba;
+      --sage-pale:   #e8f2e9;
+      --sage-deep:   #4e7452;
+      --blush:       #e8c4b4;
+      --blush-light: #f5e8e0;
+      --cream:       #faf7f2;
+      --warm-white:  #ffffff;
+      --ink:         #2d3a2e;
+      --ink-soft:    #5a6b5c;
+      --ink-muted:   #8fa191;
+      --gold:        #c9a84c;
+      --rose:        #c97a7a;
+      --sky:         #7ab0c9;
+      --sky-light:   #d0e8f5;
+      --sky-deep:    #4a8aaa;
+      --lavender:    #a08cc8;
+
+      --radius-sm:  10px;
+      --radius-md:  16px;
+      --radius-lg:  24px;
+      --radius-xl:  32px;
+
+      --shadow-sm:  0 2px 8px rgba(74,100,76,0.08);
+      --shadow-md:  0 4px 20px rgba(74,100,76,0.12);
+      --shadow-lg:  0 8px 40px rgba(74,100,76,0.16);
+
+      --font-serif: 'Lora', Georgia, serif;
+      --font-sans:  'DM Sans', system-ui, sans-serif;
+
+      --nav-h: 68px;
+      --top-h: 60px;
+    }
+
+    /* ─── RESET ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--cream);
+      color: var(--ink);
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    /* ─── SHELL ──────────────────────────────────────────────── */
+    #app { display: flex; flex-direction: column; height: 100dvh; height: 100vh; }
+
+    /* ─── TOP BAR ────────────────────────────────────────────── */
+    .topbar {
+      height: var(--top-h);
+      background: var(--warm-white);
+      border-bottom: 1px solid rgba(122,158,126,0.15);
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      flex-shrink: 0;
+      position: relative; z-index: 10;
+    }
+    .topbar-title { font-family: var(--font-serif); font-size: 18px; font-weight: 600; color: var(--ink); letter-spacing: -0.3px; }
+    .topbar-date  { font-size: 12px; color: var(--ink-muted); font-weight: 400; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .offline-badge {
+      display: none; background: var(--rose); color: white;
+      font-size: 10px; font-weight: 500; padding: 3px 8px;
+      border-radius: 20px; letter-spacing: 0.3px;
+    }
+    .offline-badge.visible { display: block; }
+
+    /* ─── SCROLL ──────────────────────────────────────────────── */
+    .scroll-area {
+      flex: 1; overflow-y: auto; overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+    }
+    .page { display: none; padding: 20px 20px 32px; min-height: 100%; }
+    .page.active { display: block; }
+
+    /* ─── BOTTOM NAV ─────────────────────────────────────────── */
+    .bottom-nav {
+      height: var(--nav-h);
+      background: var(--warm-white);
+      border-top: 1px solid rgba(122,158,126,0.15);
+      display: flex; align-items: stretch;
+      flex-shrink: 0;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .nav-item {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 3px; cursor: pointer; border: none; background: none;
+      color: var(--ink-muted); font-family: var(--font-sans);
+      font-size: 9.5px; font-weight: 500;
+      transition: color 0.2s;
+      -webkit-tap-highlight-color: transparent;
+      padding: 0; letter-spacing: 0.2px; position: relative;
+    }
+    .nav-item.active { color: var(--sage-deep); }
+    .nav-item svg { width: 22px; height: 22px; stroke-width: 1.8; }
+
+    /* ─── SECTION HEADING ────────────────────────────────────── */
+    .section-label {
+      font-size: 11px; font-weight: 500; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--ink-muted);
+      margin: 24px 0 12px;
+    }
+    .section-label:first-child { margin-top: 4px; }
+
+    /* ─── SECTION HEADER WITH ADD BUTTON ─────────────────────── */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin: 24px 0 12px;
+    }
+    .section-header .section-label { margin: 0; }
+    .section-add-btn {
+      height: 26px; padding: 0 10px;
+      background: var(--sage-pale); color: var(--sage-deep);
+      border: 1.5px solid rgba(122,158,126,0.3);
+      border-radius: 20px; font-family: var(--font-sans);
+      font-size: 11px; font-weight: 500; cursor: pointer;
+      display: flex; align-items: center; gap: 4px;
+      -webkit-tap-highlight-color: transparent;
+      transition: all 0.15s;
+    }
+    .section-add-btn:active { background: var(--sage-light); }
+
+    /* ─── CARDS ──────────────────────────────────────────────── */
+    .card {
+      background: var(--warm-white);
+      border-radius: var(--radius-md);
+      padding: 16px; box-shadow: var(--shadow-sm);
+      margin-bottom: 12px;
+    }
+    .card-title { font-family: var(--font-serif); font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+    .card-sub { font-size: 12px; color: var(--ink-muted); }
+
+    /* ─── HERO ───────────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, var(--sage) 0%, var(--sage-deep) 100%);
+      border-radius: var(--radius-lg); padding: 24px 20px;
+      color: white; margin-bottom: 20px;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: -30px; right: -30px;
+      width: 120px; height: 120px; border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+    }
+    .hero::after {
+      content: ''; position: absolute; bottom: -20px; left: -10px;
+      width: 80px; height: 80px; border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+    }
+    .hero-greeting { font-size: 13px; font-weight: 400; opacity: 0.85; margin-bottom: 4px; }
+    .hero-name { font-family: var(--font-serif); font-size: 26px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 12px; }
+    .hero-affirmation { font-size: 13px; opacity: 0.9; font-style: italic; line-height: 1.5; font-family: var(--font-serif); }
+    .progress-row { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+    .progress-bar-wrap { flex: 1; height: 6px; background: rgba(255,255,255,0.25); border-radius: 3px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: white; border-radius: 3px; transition: width 0.5s ease; }
+    .progress-pct { font-size: 13px; font-weight: 500; opacity: 0.9; min-width: 32px; text-align: right; }
+
+    /* ─── TODAY SCHEDULE BANNER ──────────────────────────────── */
+    .schedule-banner {
+      background: linear-gradient(135deg, var(--lavender) 0%, #7a60aa 100%);
+      border-radius: var(--radius-md); padding: 14px 16px;
+      color: white; margin-bottom: 16px;
+      display: flex; align-items: center; gap: 12px;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .schedule-banner-icon { font-size: 24px; flex-shrink: 0; }
+    .schedule-banner-body { flex: 1; }
+    .schedule-banner-label { font-size: 10px; opacity: 0.8; letter-spacing: 0.5px; text-transform: uppercase; font-weight: 500; }
+    .schedule-banner-title { font-family: var(--font-serif); font-size: 15px; font-weight: 600; margin-top: 2px; }
+    .schedule-banner-time { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+
+    /* ─── TASK ITEMS ─────────────────────────────────────────── */
+    .task-list { display: flex; flex-direction: column; gap: 8px; }
+    .task-item {
+      background: var(--warm-white); border-radius: var(--radius-md);
+      padding: 14px 16px; display: flex; align-items: center;
+      gap: 12px; box-shadow: var(--shadow-sm);
+      transition: opacity 0.2s; border: 1.5px solid transparent;
+    }
+    .task-item.done { background: var(--sage-pale); border-color: rgba(122,158,126,0.2); }
+    .task-item.skipped { background: #faf5f5; border-color: rgba(201,122,122,0.2); opacity: 0.8; }
+    .task-item.custom { border-left: 3px solid var(--gold); }
+    .task-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; background: var(--sage-pale); }
+    .task-item.done .task-icon { background: var(--sage-light); }
+    .task-item.skipped .task-icon { background: #f5e0e0; }
+    .task-body { flex: 1; min-width: 0; }
+    .task-name { font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 2px; }
+    .task-item.done .task-name { text-decoration: line-through; color: var(--ink-muted); }
+    .task-time { font-size: 11px; color: var(--ink-muted); }
+    .task-note-text { font-size: 11px; color: var(--sage-deep); margin-top: 2px; font-style: italic; }
+    .task-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .task-btn {
+      height: 30px; padding: 0 10px; border-radius: 8px; border: none;
+      font-family: var(--font-sans); font-size: 11px; font-weight: 500;
+      cursor: pointer; transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-done { background: var(--sage); color: white; }
+    .btn-done:active { background: var(--sage-deep); }
+    .btn-skip { background: var(--blush-light); color: var(--rose); }
+    .btn-skip:active { opacity: 0.7; }
+    .btn-undo { background: rgba(122,158,126,0.12); color: var(--sage-deep); }
+    .btn-delete { background: rgba(201,122,122,0.12); color: var(--rose); }
+
+    /* ─── STATS GRID ─────────────────────────────────────────── */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .stat-card { background: var(--warm-white); border-radius: var(--radius-md); padding: 16px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 4px; }
+    .stat-icon { font-size: 22px; margin-bottom: 4px; }
+    .stat-value { font-family: var(--font-serif); font-size: 22px; font-weight: 600; color: var(--ink); line-height: 1; }
+    .stat-label { font-size: 11px; color: var(--ink-muted); font-weight: 500; }
+
+    /* ─── WATER ──────────────────────────────────────────────── */
+    .water-hero {
+      background: linear-gradient(135deg, #7ab0c9, var(--sky-deep));
+      border-radius: var(--radius-lg); padding: 20px;
+      color: white; margin-bottom: 16px; text-align: center;
+    }
+    .water-amount { font-family: var(--font-serif); font-size: 42px; font-weight: 600; letter-spacing: -1px; margin: 8px 0 4px; }
+    .water-label { font-size: 13px; opacity: 0.85; }
+    .water-goal { font-size: 12px; opacity: 0.7; margin-top: 2px; }
+    .glasses-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 16px 0; }
+    .glass-btn {
+      aspect-ratio: 1; border-radius: var(--radius-sm);
+      border: 2px solid rgba(122,176,201,0.3); background: var(--warm-white);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 4px; cursor: pointer; transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent; font-size: 24px;
+    }
+    .glass-btn.filled { background: rgba(122,176,201,0.15); border-color: #7ab0c9; }
+    .glass-btn span { font-size: 10px; color: var(--ink-muted); font-weight: 500; }
+    .water-controls { display: flex; gap: 8px; flex-wrap: wrap; }
+    .water-btn {
+      flex: 1; min-width: 70px; height: 44px; border-radius: var(--radius-sm);
+      border: 1.5px solid rgba(122,176,201,0.4); background: white;
+      font-family: var(--font-sans); font-size: 13px; font-weight: 500;
+      color: var(--sky-deep); cursor: pointer; transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .water-btn.deduct { border-color: rgba(201,122,122,0.4); color: var(--rose); }
+    .water-btn.custom-amt { border-color: rgba(122,158,126,0.4); color: var(--sage-deep); }
+    .water-btn:active { background: rgba(122,176,201,0.1); }
+    .water-btn.deduct:active { background: rgba(201,122,122,0.08); }
+    .water-log-item {
+      background: var(--warm-white); border-radius: var(--radius-sm);
+      padding: 12px 16px; display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 8px; box-shadow: var(--shadow-sm);
+    }
+    .water-log-item.deducted { opacity: 0.55; text-decoration: line-through; }
+
+    /* ─── SYMPTOMS ───────────────────────────────────────────── */
+    .symptom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+    .symptom-chip {
+      padding: 12px 14px; border-radius: var(--radius-md);
+      background: var(--warm-white); border: 1.5px solid rgba(122,158,126,0.15);
+      box-shadow: var(--shadow-sm); cursor: pointer; transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .symptom-chip.selected { background: var(--blush-light); border-color: var(--rose); }
+    .symptom-chip-icon { font-size: 20px; }
+    .symptom-chip-text { font-size: 13px; font-weight: 500; color: var(--ink); }
+    .severity-row { display: flex; gap: 6px; margin-top: 8px; }
+    .severity-btn {
+      flex: 1; height: 36px; border-radius: 8px;
+      border: 1.5px solid rgba(122,158,126,0.2); background: white;
+      font-family: var(--font-sans); font-size: 12px; font-weight: 500;
+      cursor: pointer; transition: all 0.15s; color: var(--ink-soft);
+    }
+    .severity-btn.active-1 { background: #fff3cd; border-color: #d4a017; color: #7a5c0a; }
+    .severity-btn.active-2 { background: #ffe0cc; border-color: #e07a3a; color: #7a3a10; }
+    .severity-btn.active-3 { background: #ffd6d6; border-color: #c97a7a; color: #7a2a2a; }
+    .severity-btn.active-4 { background: #f5cccc; border-color: #b05050; color: #6a1a1a; }
+    .severity-btn.active-5 { background: #e8c4c4; border-color: #943a3a; color: #5a0a0a; }
+    .symptom-log-list { display: flex; flex-direction: column; gap: 8px; }
+    .symptom-entry {
+      background: var(--warm-white); border-radius: var(--radius-sm);
+      padding: 12px 14px; box-shadow: var(--shadow-sm);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .symptom-entry-badge {
+      font-size: 10px; font-weight: 600; padding: 2px 8px;
+      border-radius: 20px; background: var(--blush-light);
+      color: var(--rose); margin-left: auto; flex-shrink: 0;
+    }
+    .symptom-entry-time { font-size: 11px; color: var(--ink-muted); }
+
+    /* ─── MOOD/REFLECTION ────────────────────────────────────── */
+    .mood-row { display: flex; gap: 10px; justify-content: center; margin: 16px 0; }
+    .mood-btn {
+      flex: 1; aspect-ratio: 1; max-width: 100px;
+      border-radius: var(--radius-md); border: 2px solid rgba(122,158,126,0.15);
+      background: var(--warm-white); display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 6px;
+      cursor: pointer; font-family: var(--font-sans); font-size: 12px;
+      font-weight: 500; color: var(--ink-soft); transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .mood-btn .emoji { font-size: 28px; }
+    .mood-btn.selected-good { background: var(--sage-pale); border-color: var(--sage); color: var(--sage-deep); }
+    .mood-btn.selected-okay { background: #fff8e6; border-color: var(--gold); color: #7a5c0a; }
+    .mood-btn.selected-difficult { background: var(--blush-light); border-color: var(--rose); color: #7a3030; }
+
+    /* ─── INPUTS ─────────────────────────────────────────────── */
+    textarea, input[type="text"], input[type="number"] {
+      width: 100%; padding: 12px 14px;
+      border: 1.5px solid rgba(122,158,126,0.2);
+      border-radius: var(--radius-sm); background: var(--cream);
+      font-family: var(--font-sans); font-size: 14px; color: var(--ink);
+      resize: none; outline: none; transition: border-color 0.2s;
+      display: block; margin-top: 8px;
+    }
+    textarea:focus, input[type="text"]:focus, input[type="number"]:focus {
+      border-color: var(--sage); background: white;
+    }
+
+    /* ─── BUTTONS ────────────────────────────────────────────── */
+    .btn-primary {
+      width: 100%; height: 46px; border-radius: var(--radius-md);
+      border: none; background: var(--sage); color: white;
+      font-family: var(--font-sans); font-size: 14px; font-weight: 500;
+      cursor: pointer; transition: all 0.2s; margin-top: 12px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-primary:active { background: var(--sage-deep); }
+    .btn-secondary {
+      width: 100%; height: 44px; border-radius: var(--radius-md);
+      border: 1.5px solid var(--sage); background: transparent;
+      color: var(--sage-deep); font-family: var(--font-sans);
+      font-size: 14px; font-weight: 500; cursor: pointer;
+      transition: all 0.2s; margin-top: 8px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-secondary:active { background: var(--sage-pale); }
+
+    /* ─── REPORT ─────────────────────────────────────────────── */
+    .report-block { background: var(--warm-white); border-radius: var(--radius-md); padding: 16px; box-shadow: var(--shadow-sm); margin-bottom: 12px; }
+    .report-block h3 { font-family: var(--font-serif); font-size: 14px; font-weight: 600; margin-bottom: 10px; color: var(--sage-deep); padding-bottom: 8px; border-bottom: 1px solid var(--sage-pale); }
+    .report-line { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 13px; color: var(--ink-soft); border-bottom: 1px solid rgba(122,158,126,0.08); }
+    .report-line:last-child { border-bottom: none; }
+    .report-val { font-weight: 500; color: var(--ink); max-width: 55%; text-align: right; }
+    .pill-tabs { display: flex; background: rgba(122,158,126,0.1); border-radius: 10px; padding: 3px; margin-bottom: 16px; }
+    .pill-tab { flex: 1; height: 32px; border-radius: 8px; border: none; background: none; font-family: var(--font-sans); font-size: 12px; font-weight: 500; color: var(--ink-muted); cursor: pointer; transition: all 0.2s; -webkit-tap-highlight-color: transparent; }
+    .pill-tab.active { background: white; color: var(--sage-deep); box-shadow: var(--shadow-sm); }
+
+    /* ─── NOTES ──────────────────────────────────────────────── */
+    .note-item { background: var(--warm-white); border-radius: var(--radius-md); padding: 14px; box-shadow: var(--shadow-sm); margin-bottom: 8px; border-left: 3px solid var(--sage-light); }
+    .note-item-text { font-size: 14px; line-height: 1.5; color: var(--ink); }
+    .note-item-time { font-size: 11px; color: var(--ink-muted); margin-top: 6px; }
+
+    /* ─── SCHEDULE / CALENDAR ────────────────────────────────── */
+    .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .cal-month-label { font-family: var(--font-serif); font-size: 17px; font-weight: 600; color: var(--ink); }
+    .cal-nav-btn { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid rgba(122,158,126,0.25); background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; color: var(--sage-deep); -webkit-tap-highlight-color: transparent; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 20px; }
+    .cal-day-label { text-align: center; font-size: 10px; font-weight: 600; color: var(--ink-muted); letter-spacing: 0.5px; padding: 4px 0; }
+    .cal-day {
+      aspect-ratio: 1; border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-size: 13px; font-weight: 400;
+      color: var(--ink-soft); cursor: pointer; position: relative;
+      -webkit-tap-highlight-color: transparent; transition: all 0.15s;
+    }
+    .cal-day:hover { background: var(--sage-pale); }
+    .cal-day.today { background: var(--sage); color: white; font-weight: 600; }
+    .cal-day.has-event::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: var(--lavender); }
+    .cal-day.today.has-event::after { background: rgba(255,255,255,0.8); }
+    .cal-day.other-month { color: var(--ink-muted); opacity: 0.4; }
+    .cal-day.selected { background: var(--sage-pale); border: 2px solid var(--sage); color: var(--sage-deep); }
+
+    .event-list { display: flex; flex-direction: column; gap: 10px; }
+    .event-card {
+      background: var(--warm-white); border-radius: var(--radius-md);
+      padding: 14px 16px; box-shadow: var(--shadow-sm);
+      display: flex; align-items: flex-start; gap: 12px;
+      border-left: 4px solid var(--lavender);
+    }
+    .event-card.chemo { border-left-color: var(--rose); }
+    .event-card.checkup { border-left-color: var(--sky); }
+    .event-card.other { border-left-color: var(--gold); }
+    .event-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+    .event-body { flex: 1; }
+    .event-title { font-size: 14px; font-weight: 500; color: var(--ink); }
+    .event-meta { font-size: 11px; color: var(--ink-muted); margin-top: 3px; }
+    .event-delete { background: none; border: none; font-size: 16px; color: var(--ink-muted); cursor: pointer; padding: 0 4px; -webkit-tap-highlight-color: transparent; }
+
+    .event-type-row { display: flex; gap: 8px; margin-top: 8px; }
+    .event-type-btn {
+      flex: 1; height: 36px; border-radius: 8px;
+      border: 1.5px solid rgba(122,158,126,0.2); background: white;
+      font-family: var(--font-sans); font-size: 12px; font-weight: 500;
+      cursor: pointer; color: var(--ink-soft); transition: all 0.15s;
+    }
+    .event-type-btn.active-chemo { background: #fdf0f0; border-color: var(--rose); color: #7a2020; }
+    .event-type-btn.active-checkup { background: var(--sky-light); border-color: var(--sky-deep); color: #1a4a6a; }
+    .event-type-btn.active-other { background: #fff8e6; border-color: var(--gold); color: #6a4a00; }
+
+    /* ─── MODAL OVERLAY ──────────────────────────────────────── */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(45,58,46,0.45);
+      z-index: 200; display: flex; align-items: flex-end;
+      opacity: 0; pointer-events: none; transition: opacity 0.25s;
+    }
+    .modal-backdrop.open { opacity: 1; pointer-events: all; }
+    .modal-sheet {
+      background: var(--warm-white); width: 100%;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+      transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+      max-height: 85vh; overflow-y: auto;
+    }
+    .modal-backdrop.open .modal-sheet { transform: translateY(0); }
+    .modal-handle { width: 40px; height: 4px; border-radius: 2px; background: rgba(122,158,126,0.25); margin: 0 auto 20px; }
+    .modal-title { font-family: var(--font-serif); font-size: 17px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+    .modal-sub { font-size: 13px; color: var(--ink-muted); margin-bottom: 16px; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 8px; }
+    .modal-btn-cancel {
+      flex: 1; height: 46px; border-radius: var(--radius-md);
+      border: 1.5px solid rgba(122,158,126,0.25); background: transparent;
+      color: var(--ink-muted); font-family: var(--font-sans);
+      font-size: 14px; font-weight: 500; cursor: pointer;
+    }
+    .modal-btn-confirm {
+      flex: 2; height: 46px; border-radius: var(--radius-md);
+      border: none; background: var(--sage); color: white;
+      font-family: var(--font-sans); font-size: 14px; font-weight: 500;
+      cursor: pointer;
+    }
+
+    /* ─── SYNC DOT ───────────────────────────────────────────── */
+    .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--sage-light); display: inline-block; }
+    .sync-dot.syncing { background: var(--gold); animation: pulse 1s infinite; }
+    .sync-dot.synced { background: var(--sage); }
+    .sync-dot.error { background: var(--rose); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    /* ─── TOAST ──────────────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: calc(var(--nav-h) + 16px);
+      left: 50%; transform: translateX(-50%);
+      background: var(--ink); color: white;
+      padding: 10px 20px; border-radius: 20px;
+      font-size: 13px; font-weight: 500;
+      z-index: 999; opacity: 0; transition: opacity 0.3s;
+      pointer-events: none; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; }
+
+    /* ─── UTILS ──────────────────────────────────────────────── */
+    .fade-in { animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    .empty-state { text-align: center; padding: 32px 20px; color: var(--ink-muted); }
+    .empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; line-height: 1.5; }
+    input[type="date"] {
+      width: 100%; padding: 12px 14px;
+      border: 1.5px solid rgba(122,158,126,0.2);
+      border-radius: var(--radius-sm); background: var(--cream);
+      font-family: var(--font-sans); font-size: 14px; color: var(--ink);
+      outline: none; margin-top: 8px;
+    }
+    input[type="date"]:focus { border-color: var(--sage); background: white; }
+    input[type="time"] {
+      width: 100%; padding: 12px 14px;
+      border: 1.5px solid rgba(122,158,126,0.2);
+      border-radius: var(--radius-sm); background: var(--cream);
+      font-family: var(--font-sans); font-size: 14px; color: var(--ink);
+      outline: none; margin-top: 8px;
+    }
+    input[type="time"]:focus { border-color: var(--sage); background: white; }
+    .form-label { font-size: 12px; font-weight: 500; color: var(--ink-soft); margin-top: 14px; display: block; letter-spacing: 0.3px; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div>
+      <div class="topbar-title">Mama Daily Tracker</div>
+      <div class="topbar-date" id="topbar-date"></div>
+    </div>
+    <div class="topbar-right">
+      <span class="offline-badge" id="offline-badge">Offline</span>
+      <span class="sync-dot" id="sync-dot" title="Sync status"></span>
+    </div>
+  </header>
+
+  <!-- SCROLL AREA -->
+  <main class="scroll-area">
+
+    <!-- ── HOME PAGE ───────────────────────────────────────── -->
+    <div class="page active fade-in" id="page-home">
+      <div class="hero">
+        <div class="hero-greeting" id="hero-greeting">Good morning,</div>
+        <div class="hero-name" id="hero-name">Mama</div>
+        <div class="hero-affirmation" id="hero-affirmation">"You are stronger than you think."</div>
+        <div class="progress-row">
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" id="home-progress-fill" style="width:0%"></div>
+          </div>
+          <div class="progress-pct" id="home-progress-pct">0%</div>
+        </div>
+      </div>
+
+      <!-- Today's schedule banner (shown only if event today) -->
+      <div id="today-schedule-banner" style="display:none"></div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">💊</div>
+          <div class="stat-value" id="dash-meds">—</div>
+          <div class="stat-label">Medications</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🍽️</div>
+          <div class="stat-value" id="dash-meals">—</div>
+          <div class="stat-label">Meals</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">💧</div>
+          <div class="stat-value" id="dash-water">—</div>
+          <div class="stat-label">Hydration</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">😊</div>
+          <div class="stat-value" id="dash-mood">—</div>
+          <div class="stat-label">Today's Mood</div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <div class="section-label">Morning</div>
+        <button class="section-add-btn" onclick="openAddSnack('morning')">+ Add Snack / Food</button>
+      </div>
+      <div class="task-list" id="tasks-morning"></div>
+
+      <div class="section-header">
+        <div class="section-label">Afternoon</div>
+        <button class="section-add-btn" onclick="openAddSnack('afternoon')">+ Add Snack / Food</button>
+      </div>
+      <div class="task-list" id="tasks-afternoon"></div>
+
+      <div class="section-header">
+        <div class="section-label">Evening</div>
+        <button class="section-add-btn" onclick="openAddSnack('evening')">+ Add Snack / Food</button>
+      </div>
+      <div class="task-list" id="tasks-evening"></div>
+    </div>
+
+    <!-- ── WATER PAGE ──────────────────────────────────────── -->
+    <div class="page fade-in" id="page-water">
+      <div class="water-hero">
+        <div class="water-label">Today's Hydration</div>
+        <div class="water-amount" id="water-amount">0 ml</div>
+        <div class="water-goal" id="water-goal-label">of 2,000 ml goal</div>
+      </div>
+
+      <div class="glasses-grid" id="glasses-grid"></div>
+
+      <div class="water-controls">
+        <button class="water-btn" onclick="addWater(250)">+ 250 ml</button>
+        <button class="water-btn" onclick="addWater(500)">+ 500 ml</button>
+        <button class="water-btn" onclick="addWater(750)">+ 750 ml</button>
+        <button class="water-btn custom-amt" onclick="openCustomWater()">+ Custom</button>
+        <button class="water-btn deduct" onclick="openDeductWater()">− Deduct</button>
+      </div>
+
+      <div class="section-label" style="margin-top:20px">Water Log Today</div>
+      <div id="water-log-list"></div>
+    </div>
+
+    <!-- ── SYMPTOMS PAGE ───────────────────────────────────── -->
+    <div class="page fade-in" id="page-symptoms">
+      <div class="card">
+        <div class="card-title">How are you feeling, Mama?</div>
+        <div class="card-sub">Tap all symptoms you're experiencing right now</div>
+      </div>
+
+      <div class="symptom-grid" id="symptom-grid"></div>
+
+      <div class="card" id="symptom-log-card" style="display:none">
+        <div class="card-title" id="selected-symptom-name">Selected</div>
+        <div class="card-sub">How severe is it?</div>
+        <div class="severity-row" id="severity-row"></div>
+        <textarea id="symptom-notes" rows="2" placeholder="Any details? (optional)"></textarea>
+        <button class="btn-primary" onclick="logSymptom()">Log Symptom</button>
+      </div>
+
+      <!-- Free text custom symptom -->
+      <div class="card">
+        <div class="card-title">Something else?</div>
+        <div class="card-sub">Describe a symptom not in the list above</div>
+        <input type="text" id="custom-symptom-input" placeholder="e.g. Tingling in hands…" />
+        <div class="severity-row" id="custom-severity-row"></div>
+        <textarea id="custom-symptom-notes" rows="2" placeholder="Any details? (optional)" style="margin-top:8px"></textarea>
+        <button class="btn-primary" onclick="logCustomSymptom()">Log Custom Symptom</button>
+      </div>
+
+      <div class="section-label">Logged Today</div>
+      <div class="symptom-log-list" id="symptom-log-list">
+        <div class="empty-state">
+          <div class="empty-icon">🌿</div>
+          <p>No symptoms logged yet today.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SCHEDULE PAGE ───────────────────────────────────── -->
+    <div class="page fade-in" id="page-schedule">
+      <div class="cal-header">
+        <button class="cal-nav-btn" onclick="calNav(-1)">‹</button>
+        <div class="cal-month-label" id="cal-month-label"></div>
+        <button class="cal-nav-btn" onclick="calNav(1)">›</button>
+      </div>
+
+      <div class="cal-grid" id="cal-grid"></div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="section-label" style="margin:0" id="cal-events-label">Events</div>
+        <button class="section-add-btn" onclick="openAddEvent()">+ Add Event</button>
+      </div>
+      <div id="cal-events-list"></div>
+    </div>
+
+    <!-- ── JOURNAL/NOTES PAGE ──────────────────────────────── -->
+    <div class="page fade-in" id="page-notes">
+      <div class="card">
+        <div class="card-title" style="font-family:var(--font-serif)">How was today, Mama?</div>
+        <div class="mood-row">
+          <button class="mood-btn" id="mood-good" onclick="selectMood('Good')">
+            <span class="emoji">🙂</span> Good
+          </button>
+          <button class="mood-btn" id="mood-okay" onclick="selectMood('Okay')">
+            <span class="emoji">😐</span> Okay
+          </button>
+          <button class="mood-btn" id="mood-difficult" onclick="selectMood('Difficult')">
+            <span class="emoji">☹️</span> Difficult
+          </button>
+        </div>
+        <textarea id="mood-notes" rows="3" placeholder="Anything you want to add about today…"></textarea>
+        <button class="btn-primary" onclick="saveReflection()">Save Reflection</button>
+      </div>
+
+      <div class="section-label">Notes</div>
+      <textarea id="note-input" rows="3" placeholder="Write something… how you feel, what you noticed, anything."></textarea>
+      <button class="btn-primary" onclick="addNote()">Add Note</button>
+      <div id="notes-list" style="margin-top:16px"></div>
+    </div>
+
+    <!-- ── REPORT PAGE ─────────────────────────────────────── -->
+    <div class="page fade-in" id="page-report">
+      <div class="pill-tabs">
+        <button class="pill-tab active" id="tab-daily" onclick="switchReport('daily')">Daily</button>
+        <button class="pill-tab" id="tab-weekly" onclick="switchReport('weekly')">Weekly</button>
+      </div>
+      <div id="report-daily">
+        <div class="report-block" id="report-daily-content"></div>
+        <button class="btn-secondary" onclick="exportPDF('daily')">📄 Export Daily Report</button>
+      </div>
+      <div id="report-weekly" style="display:none">
+        <div class="report-block" id="report-weekly-content"></div>
+        <button class="btn-secondary" onclick="exportPDF('weekly')">📄 Export Weekly Report</button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="nav-home" onclick="navigate('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+      Today
+    </button>
+    <button class="nav-item" id="nav-water" onclick="navigate('water')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2C6 8 4 12 4 15a8 8 0 0016 0c0-3-2-7-8-13z"/></svg>
+      Water
+    </button>
+    <button class="nav-item" id="nav-symptoms" onclick="navigate('symptoms')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      Symptoms
+    </button>
+    <button class="nav-item" id="nav-schedule" onclick="navigate('schedule')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Schedule
+    </button>
+    <button class="nav-item" id="nav-notes" onclick="navigate('notes')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      Journal
+    </button>
+    <button class="nav-item" id="nav-report" onclick="navigate('report')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      Report
+    </button>
+  </nav>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════
+     MODALS
+═══════════════════════════════════════════════ -->
+
+<!-- Food note modal (Done) -->
+<div class="modal-backdrop" id="modal-food-note">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-food-note-title">What did Mama eat?</div>
+    <div class="modal-sub">Log what was eaten for this meal</div>
+    <textarea id="food-note-input" rows="3" placeholder="e.g. Rice and grilled chicken, half a cup…"></textarea>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeModal('modal-food-note')">Cancel</button>
+      <button class="modal-btn-confirm" onclick="confirmFoodNote()">Save & Mark Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- Skip reason modal -->
+<div class="modal-backdrop" id="modal-skip-reason">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-skip-title">Skipping this?</div>
+    <div class="modal-sub">No worries — reason is optional</div>
+    <textarea id="skip-reason-input" rows="2" placeholder="Reason (optional)…"></textarea>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeModal('modal-skip-reason')">Cancel</button>
+      <button class="modal-btn-confirm" onclick="confirmSkip()">Confirm Skip</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add snack modal -->
+<div class="modal-backdrop" id="modal-add-snack">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add Snack / Extra Food</div>
+    <div class="modal-sub" id="modal-snack-sub">Extra food between meals</div>
+    <input type="text" id="snack-name-input" placeholder="e.g. Banana and crackers…" />
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeModal('modal-add-snack')">Cancel</button>
+      <button class="modal-btn-confirm" onclick="confirmAddSnack()">Add & Log</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom water modal -->
+<div class="modal-backdrop" id="modal-custom-water">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-water-title">Add Water</div>
+    <div class="modal-sub" id="modal-water-sub">Enter amount in ml</div>
+    <input type="number" id="custom-water-input" placeholder="e.g. 350" min="1" max="5000" />
+    <textarea id="custom-water-note" rows="2" placeholder="Note (optional, e.g. coconut water, soup…)"></textarea>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeModal('modal-custom-water')">Cancel</button>
+      <button class="modal-btn-confirm" id="custom-water-confirm-btn" onclick="confirmCustomWater()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add calendar event modal -->
+<div class="modal-backdrop" id="modal-add-event">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add Schedule Event</div>
+    <div class="modal-sub">Chemo session, checkup, or other appointment</div>
+    <label class="form-label">Event Title</label>
+    <input type="text" id="event-title-input" placeholder="e.g. Chemo Session 4, Dr. Santos Checkup…" />
+    <label class="form-label">Date</label>
+    <input type="date" id="event-date-input" />
+    <label class="form-label">Time (optional)</label>
+    <input type="time" id="event-time-input" />
+    <label class="form-label">Type</label>
+    <div class="event-type-row">
+      <button class="event-type-btn active-chemo" id="etype-chemo" onclick="selectEventType('chemo')">💉 Chemo</button>
+      <button class="event-type-btn" id="etype-checkup" onclick="selectEventType('checkup')">🩺 Checkup</button>
+      <button class="event-type-btn" id="etype-other" onclick="selectEventType('other')">📅 Other</button>
+    </div>
+    <label class="form-label">Notes (optional)</label>
+    <textarea id="event-notes-input" rows="2" placeholder="Any details…"></textarea>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeModal('modal-add-event')">Cancel</button>
+      <button class="modal-btn-confirm" onclick="confirmAddEvent()">Save Event</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   CONFIG — update before deploying
+═══════════════════════════════════════════════════════════ */
+const CONFIG = {
+  patientName:      "Althea",   // used in data / reports / PDF
+  callName:         "Mama",     // used in on-screen motivational UI
+  waterGoalMl:      2000,
+  waterGoalGlasses: 8,
+  supabaseUrl:      "https://jocjrgsoilqpxmcqreup.supabase.co",
+  supabaseKey:      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvY2pyZ3NvaWxxcHhtY3FyZXVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NDQ2OTksImV4cCI6MjA5NjUyMDY5OX0.WwCD4c4LzqWsbaH5xYOQuyi8BbrW3JxJs99NPPRHNag",
+  useSupabase:      true,      // set true after connecting Supabase
+};
+
+/* ═══════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════ */
+const STATE = {
+  tasks:      {},   // { taskId: { status, timestamp, notes } }
+  water:      [],   // [{ timestamp, amount_ml, note, deducted? }]
+  symptoms:   [],   // [{ timestamp, symptom, severity, notes, custom? }]
+  notes:      [],   // [{ timestamp, text }]
+  reflection: null, // { timestamp, mood, notes }
+  customTasks:{},   // { morning|afternoon|evening: [{ id, label, icon, timestamp, status, notes }] }
+  syncQueue:  [],
+};
+
+/* ═══════════════════════════════════════════════════════════
+   STATIC DATA
+═══════════════════════════════════════════════════════════ */
+const TASKS = [
+  { id:"breakfast",     label:"Breakfast",            icon:"🍳", group:"morning",   isMeal:true  },
+  { id:"med-morning",   label:"Morning Medication",   icon:"💊", group:"morning",   isMed:true   },
+  { id:"lunch",         label:"Lunch",                icon:"🍲", group:"afternoon", isMeal:true  },
+  { id:"med-afternoon", label:"Afternoon Medication", icon:"💊", group:"afternoon", isMed:true   },
+  { id:"water-check",   label:"Hydration Check-in",   icon:"💧", group:"afternoon"              },
+  { id:"walk",          label:"Walk / Light Exercise",icon:"🚶", group:"afternoon"              },
+  { id:"dinner",        label:"Dinner",               icon:"🍽️", group:"evening",   isMeal:true  },
+  { id:"med-evening",   label:"Evening Medication",   icon:"💊", group:"evening",   isMed:true   },
+];
+
+const SYMPTOMS = [
+  { id:"nausea",       label:"Nausea",          icon:"🤢" },
+  { id:"fatigue",      label:"Fatigue",         icon:"😴" },
+  { id:"appetite",     label:"Appetite Loss",   icon:"🍽️" },
+  { id:"dizziness",    label:"Dizziness",       icon:"💫" },
+  { id:"pain",         label:"Pain",            icon:"😣" },
+  { id:"constipation", label:"Constipation",    icon:"😔" },
+  { id:"diarrhea",     label:"Diarrhea",        icon:"🚽" },
+  { id:"sleep",        label:"Sleep Difficulty",icon:"🌙" },
+  { id:"mouth-sores",  label:"Mouth Sores",     icon:"🫦" },
+  { id:"numbness",     label:"Numbness / Tingling", icon:"🖐️" },
+];
+
+const AFFIRMATIONS = [
+  "You are stronger than you think, Mama.",
+  "Every small step counts. You're doing beautifully.",
+  "Rest is part of healing. Be gentle with yourself.",
+  "You are loved and you are never alone.",
+  "One moment at a time. You've got this, Mama.",
+  "Your strength inspires everyone around you.",
+  "Today you showed up. That's everything.",
+  "We are so proud of you, Mama.",
+  "You are brave, and you are healing.",
+];
+
+/* ═══════════════════════════════════════════════════════════
+   UI STATE
+═══════════════════════════════════════════════════════════ */
+let selectedSymptom   = null;
+let selectedSeverity  = null;
+let customSeverity    = null;
+let selectedMood      = null;
+let currentReport     = 'daily';
+let isOnline          = navigator.onLine;
+
+// Modal pending state
+let pendingTaskId     = null;
+let pendingTaskStatus = null;
+let pendingSnackGroup = null;
+let pendingWaterMode  = null; // 'add' | 'deduct'
+let selectedEventType = 'chemo';
+
+// Calendar state
+let calYear, calMonth, calSelectedDate;
+
+/* ═══════════════════════════════════════════════════════════
+   SUPABASE ADAPTER
+═══════════════════════════════════════════════════════════ */
+const DB = {
+  async insert(table, row) {
+    if (!CONFIG.useSupabase) { this.queueWrite(table, row); return; }
+    try {
+      const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/${table}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': CONFIG.supabaseKey,
+          'Authorization': `Bearer ${CONFIG.supabaseKey}`,
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify(row),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      setSyncStatus('synced');
+    } catch(e) {
+      console.warn('DB write failed, queuing:', e);
+      this.queueWrite(table, row);
+      setSyncStatus('error');
+    }
+  },
+  queueWrite(table, row) {
+    const queue = JSON.parse(localStorage.getItem('syncQueue') || '[]');
+    queue.push({ table, row, ts: Date.now() });
+    localStorage.setItem('syncQueue', JSON.stringify(queue));
+    setSyncStatus('error');
+  },
+  async flushQueue() {
+    if (!CONFIG.useSupabase || !isOnline) return;
+    const queue = JSON.parse(localStorage.getItem('syncQueue') || '[]');
+    if (!queue.length) return;
+    const remaining = [];
+    for (const item of queue) {
+      try { await this.insert(item.table, item.row); }
+      catch { remaining.push(item); }
+    }
+    localStorage.setItem('syncQueue', JSON.stringify(remaining));
+    if (!remaining.length) setSyncStatus('synced');
+  },
+};
+
+/* ═══════════════════════════════════════════════════════════
+   LOCAL STORAGE
+═══════════════════════════════════════════════════════════ */
+const todayKey = () => new Date().toISOString().slice(0, 10);
+
+function saveLocal() {
+  localStorage.setItem(`cc_${todayKey()}`, JSON.stringify({
+    tasks:       STATE.tasks,
+    water:       STATE.water,
+    symptoms:    STATE.symptoms,
+    notes:       STATE.notes,
+    reflection:  STATE.reflection,
+    customTasks: STATE.customTasks,
+  }));
+}
+
+function loadLocal() {
+  const raw = localStorage.getItem(`cc_${todayKey()}`);
+  if (!raw) return;
+  const data = JSON.parse(raw);
+  Object.assign(STATE, data);
+  if (!STATE.customTasks) STATE.customTasks = {};
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EVENTS / SCHEDULE — persisted separately (not date-scoped)
+═══════════════════════════════════════════════════════════ */
+function loadEvents() {
+  return JSON.parse(localStorage.getItem('cc_events') || '[]');
+}
+function saveEvents(events) {
+  localStorage.setItem('cc_events', JSON.stringify(events));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════════ */
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`page-${page}`).classList.add('active');
+  document.getElementById(`nav-${page}`).classList.add('active');
+  document.querySelector('.scroll-area').scrollTop = 0;
+  if (page === 'report') renderReport();
+  if (page === 'schedule') renderCalendar();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════ */
+function init() {
+  loadLocal();
+  setupTopbar();
+  setupHero();
+  renderTasks();
+  renderWater();
+  renderSymptomGrid();
+  renderSymptomLog();
+  renderNotes();
+  renderSyncStatus();
+  setupOnlineHandlers();
+  renderTodayScheduleBanner();
+
+  // Calendar defaults
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+  calSelectedDate = todayKey();
+
+  // Custom severity row init
+  renderCustomSeverityRow();
+
+  DB.flushQueue();
+}
+
+function setupTopbar() {
+  const now = new Date();
+  document.getElementById('topbar-date').textContent = now.toLocaleDateString('en-US', {
+    weekday:'long', month:'long', day:'numeric'
+  });
+}
+
+function setupHero() {
+  document.getElementById('hero-name').textContent = CONFIG.callName;
+  const h = new Date().getHours();
+  const greeting = h < 12 ? 'Good morning,' : h < 18 ? 'Good afternoon,' : 'Good evening,';
+  document.getElementById('hero-greeting').textContent = greeting;
+  const aff = AFFIRMATIONS[Math.floor(Math.random() * AFFIRMATIONS.length)];
+  document.getElementById('hero-affirmation').textContent = `"${aff}"`;
+  updateProgress();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TASKS
+═══════════════════════════════════════════════════════════ */
+function renderTasks() {
+  ['morning','afternoon','evening'].forEach(group => {
+    const el = document.getElementById(`tasks-${group}`);
+    const baseTasks = TASKS.filter(t => t.group === group);
+    const custom = (STATE.customTasks[group] || []);
+    let html = baseTasks.map(t => taskHTML(t)).join('');
+    html += custom.map(t => customTaskHTML(t, group)).join('');
+    el.innerHTML = html;
+  });
+  updateProgress();
+  updateDashStats();
+}
+
+function taskHTML(task) {
+  const st = STATE.tasks[task.id];
+  const status = st?.status || 'pending';
+  const time = st?.timestamp
+    ? new Date(st.timestamp).toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' })
+    : '';
+  const isDone = status === 'done';
+  const isSkipped = status === 'skip';
+  const noteText = st?.notes ? `<div class="task-note-text">${escapeHtml(st.notes)}</div>` : '';
+
+  return `
+    <div class="task-item ${isDone?'done':''} ${isSkipped?'skipped':''}" id="task-${task.id}">
+      <div class="task-icon">${task.icon}</div>
+      <div class="task-body">
+        <div class="task-name">${task.label}</div>
+        <div class="task-time">${time ? (isDone?'✓ ':'⏭ ')+time : 'Not done yet'}</div>
+        ${noteText}
+      </div>
+      <div class="task-actions">
+        ${isDone || isSkipped
+          ? `<button class="task-btn btn-undo" onclick="undoTask('${task.id}')">Undo</button>`
+          : `<button class="task-btn btn-done" onclick="initMarkTask('${task.id}','done')">✓ Done</button>
+             <button class="task-btn btn-skip" onclick="initMarkTask('${task.id}','skip')">Skip</button>`
+        }
+      </div>
+    </div>`;
+}
+
+function customTaskHTML(task, group) {
+  const isDone = task.status === 'done';
+  const isSkipped = task.status === 'skip';
+  const time = task.timestamp
+    ? new Date(task.timestamp).toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' })
+    : '';
+  const noteText = task.notes ? `<div class="task-note-text">${escapeHtml(task.notes)}</div>` : '';
+
+  return `
+    <div class="task-item custom ${isDone?'done':''} ${isSkipped?'skipped':''}" id="ctask-${task.id}">
+      <div class="task-icon">${task.icon}</div>
+      <div class="task-body">
+        <div class="task-name">${escapeHtml(task.label)}</div>
+        <div class="task-time">${time ? (isDone?'✓ ':'⏭ ')+time : 'Not done yet'}</div>
+        ${noteText}
+      </div>
+      <div class="task-actions">
+        ${isDone || isSkipped
+          ? `<button class="task-btn btn-undo" onclick="undoCustomTask('${group}','${task.id}')">Undo</button>
+             <button class="task-btn btn-delete" onclick="deleteCustomTask('${group}','${task.id}')">✕</button>`
+          : `<button class="task-btn btn-done" onclick="initMarkCustomTask('${group}','${task.id}','done')">✓ Done</button>
+             <button class="task-btn btn-skip" onclick="initMarkCustomTask('${group}','${task.id}','skip')">Skip</button>`
+        }
+      </div>
+    </div>`;
+}
+
+/* ── Task actions ─────────────────────────────────────────── */
+function initMarkTask(taskId, status) {
+  const task = TASKS.find(t => t.id === taskId);
+  pendingTaskId = taskId;
+  pendingTaskStatus = status;
+
+  if (status === 'done' && task?.isMeal) {
+    // Ask what was eaten
+    document.getElementById('modal-food-note-title').textContent = `What did ${CONFIG.callName} eat?`;
+    document.getElementById('food-note-input').value = '';
+    openModal('modal-food-note');
+  } else if (status === 'skip') {
+    document.getElementById('modal-skip-title').textContent = `Skip ${task?.label}?`;
+    document.getElementById('skip-reason-input').value = '';
+    openModal('modal-skip-reason');
+  } else {
+    commitMarkTask(taskId, status, '');
+  }
+}
+
+function confirmFoodNote() {
+  const notes = document.getElementById('food-note-input').value.trim();
+  closeModal('modal-food-note');
+  if (pendingTaskId) commitMarkTask(pendingTaskId, 'done', notes);
+  pendingTaskId = null; pendingTaskStatus = null;
+}
+
+function confirmSkip() {
+  const reason = document.getElementById('skip-reason-input').value.trim() || 'Skipped';
+  closeModal('modal-skip-reason');
+  if (pendingTaskId) {
+    commitMarkTask(pendingTaskId, 'skip', reason);
+  } else if (pendingCustomTaskInfo) {
+    const { group, id } = pendingCustomTaskInfo;
+    commitMarkCustomTask(group, id, 'skip', reason);
+    pendingCustomTaskInfo = null;
+  }
+  pendingTaskId = null; pendingTaskStatus = null;
+}
+
+function commitMarkTask(taskId, status, notes) {
+  const now = new Date().toISOString();
+  STATE.tasks[taskId] = { status, timestamp: now, notes };
+  saveLocal();
+  const task = TASKS.find(t => t.id === taskId);
+  DB.insert('activity_log', {
+    timestamp: now,
+    activity_type: task?.label || taskId,
+    status,
+    notes: notes || null,
+  });
+  renderTasks();
+  showToast(status === 'done' ? '✓ Marked as done!' : 'Skipped');
+}
+
+function undoTask(taskId) {
+  delete STATE.tasks[taskId];
+  saveLocal();
+  renderTasks();
+}
+
+/* ── Custom tasks ─────────────────────────────────────────── */
+let pendingCustomTaskInfo = null;
+
+function initMarkCustomTask(group, id, status) {
+  pendingCustomTaskInfo = { group, id };
+  if (status === 'done') {
+    document.getElementById('modal-food-note-title').textContent = `What did ${CONFIG.callName} eat?`;
+    document.getElementById('food-note-input').value = '';
+    openModal('modal-food-note');
+    // Override confirm to use custom path
+    document.querySelector('#modal-food-note .modal-btn-confirm').onclick = () => {
+      const notes = document.getElementById('food-note-input').value.trim();
+      closeModal('modal-food-note');
+      const { group: g, id: i } = pendingCustomTaskInfo;
+      commitMarkCustomTask(g, i, 'done', notes);
+      pendingCustomTaskInfo = null;
+      // Reset confirm button
+      document.querySelector('#modal-food-note .modal-btn-confirm').onclick = confirmFoodNote;
+    };
+  } else {
+    document.getElementById('modal-skip-title').textContent = 'Skip this item?';
+    document.getElementById('skip-reason-input').value = '';
+    openModal('modal-skip-reason');
+  }
+}
+
+function commitMarkCustomTask(group, id, status, notes) {
+  const now = new Date().toISOString();
+  const tasks = STATE.customTasks[group] || [];
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  task.status = status;
+  task.timestamp = now;
+  task.notes = notes;
+  saveLocal();
+  DB.insert('activity_log', {
+    timestamp: now,
+    activity_type: task.label,
+    status,
+    notes: notes || null,
+  });
+  renderTasks();
+  showToast(status === 'done' ? '✓ Logged!' : 'Skipped');
+}
+
+function undoCustomTask(group, id) {
+  const tasks = STATE.customTasks[group] || [];
+  const task = tasks.find(t => t.id === id);
+  if (task) { task.status = 'pending'; task.timestamp = null; task.notes = ''; }
+  saveLocal();
+  renderTasks();
+}
+
+function deleteCustomTask(group, id) {
+  STATE.customTasks[group] = (STATE.customTasks[group] || []).filter(t => t.id !== id);
+  saveLocal();
+  renderTasks();
+}
+
+/* ── Add snack modal ──────────────────────────────────────── */
+function openAddSnack(group) {
+  pendingSnackGroup = group;
+  const labels = { morning:'morning', afternoon:'afternoon', evening:'evening' };
+  document.getElementById('modal-snack-sub').textContent = `Extra food in the ${labels[group]}`;
+  document.getElementById('snack-name-input').value = '';
+  openModal('modal-add-snack');
+}
+
+function confirmAddSnack() {
+  const name = document.getElementById('snack-name-input').value.trim();
+  if (!name) { showToast('Please enter what was eaten'); return; }
+  closeModal('modal-add-snack');
+
+  const id = `snack_${Date.now()}`;
+  const now = new Date().toISOString();
+  const entry = { id, label: name, icon: '🍎', status: 'done', timestamp: now, notes: name };
+  if (!STATE.customTasks[pendingSnackGroup]) STATE.customTasks[pendingSnackGroup] = [];
+  STATE.customTasks[pendingSnackGroup].push(entry);
+  saveLocal();
+  DB.insert('activity_log', {
+    timestamp: now,
+    activity_type: `Snack: ${name}`,
+    status: 'done',
+    notes: name,
+  });
+  renderTasks();
+  showToast('🍎 Snack logged!');
+  pendingSnackGroup = null;
+}
+
+/* ── Progress ─────────────────────────────────────────────── */
+function updateProgress() {
+  const total = TASKS.length;
+  const done  = TASKS.filter(t => STATE.tasks[t.id]?.status === 'done').length;
+  const pct   = Math.round((done / total) * 100);
+  document.getElementById('home-progress-fill').style.width = pct + '%';
+  document.getElementById('home-progress-pct').textContent  = pct + '%';
+}
+
+function updateDashStats() {
+  const meds    = TASKS.filter(t => t.isMed);
+  const medDone = meds.filter(t => STATE.tasks[t.id]?.status === 'done').length;
+  document.getElementById('dash-meds').textContent = `${medDone}/${meds.length}`;
+
+  const meals    = TASKS.filter(t => t.isMeal);
+  const mealDone = meals.filter(t => STATE.tasks[t.id]?.status === 'done').length;
+  document.getElementById('dash-meals').textContent = `${mealDone}/${meals.length}`;
+
+  const totalWater = STATE.water.filter(w => !w.deducted).reduce((s,w) => s + w.amount_ml, 0);
+  const netWater   = Math.max(0, totalWater);
+  const glasses    = Math.floor(netWater / 250);
+  document.getElementById('dash-water').textContent = `${glasses}/${CONFIG.waterGoalGlasses}`;
+
+  document.getElementById('dash-mood').textContent = STATE.reflection?.mood || '—';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   WATER
+═══════════════════════════════════════════════════════════ */
+function netWaterTotal() {
+  let total = 0;
+  STATE.water.forEach(w => { total += w.deducted ? -w.amount_ml : w.amount_ml; });
+  return Math.max(0, total);
+}
+
+function renderWater() {
+  const total = netWaterTotal();
+  document.getElementById('water-amount').textContent = total.toLocaleString() + ' ml';
+
+  const grid   = document.getElementById('glasses-grid');
+  const filled = Math.min(Math.floor(total / 250), CONFIG.waterGoalGlasses);
+  grid.innerHTML = Array.from({ length: CONFIG.waterGoalGlasses }, (_, i) => `
+    <button class="glass-btn ${i < filled ? 'filled' : ''}" onclick="addWater(250)">
+      💧<span>${(i+1)*250}ml</span>
+    </button>`).join('');
+
+  const logEl = document.getElementById('water-log-list');
+  if (!STATE.water.length) {
+    logEl.innerHTML = '<div class="empty-state"><div class="empty-icon">💧</div><p>No water logged yet today.</p></div>';
+    updateDashStats();
+    return;
+  }
+  logEl.innerHTML = [...STATE.water].reverse().map(w => `
+    <div class="water-log-item ${w.deducted ? 'deducted' : ''}">
+      <div>
+        <span style="font-size:14px;font-weight:500">${w.deducted ? '−' : '+'} ${w.amount_ml} ml${w.note ? ` · <em style="font-size:12px;color:var(--ink-muted)">${escapeHtml(w.note)}</em>` : ''}</span>
+      </div>
+      <span style="font-size:11px;color:var(--ink-muted)">${new Date(w.timestamp).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</span>
+    </div>`).join('');
+
+  updateDashStats();
+}
+
+function addWater(ml, note='') {
+  const now   = new Date().toISOString();
+  const entry = { timestamp: now, amount_ml: ml, note };
+  STATE.water.push(entry);
+  saveLocal();
+  DB.insert('water_log', { timestamp: now, amount_ml: ml });
+  renderWater();
+  showToast(`💧 +${ml} ml added`);
+}
+
+function openCustomWater() {
+  pendingWaterMode = 'add';
+  document.getElementById('modal-water-title').textContent = 'Add Water';
+  document.getElementById('modal-water-sub').textContent = 'Enter amount in ml';
+  document.getElementById('custom-water-confirm-btn').textContent = 'Add';
+  document.getElementById('custom-water-input').value = '';
+  document.getElementById('custom-water-note').value = '';
+  openModal('modal-custom-water');
+}
+
+function openDeductWater() {
+  pendingWaterMode = 'deduct';
+  document.getElementById('modal-water-title').textContent = 'Deduct Water';
+  document.getElementById('modal-water-sub').textContent = 'Remove an incorrect entry (enter amount to deduct)';
+  document.getElementById('custom-water-confirm-btn').textContent = 'Deduct';
+  document.getElementById('custom-water-input').value = '';
+  document.getElementById('custom-water-note').value = '';
+  openModal('modal-custom-water');
+}
+
+function confirmCustomWater() {
+  const ml   = parseInt(document.getElementById('custom-water-input').value);
+  const note = document.getElementById('custom-water-note').value.trim();
+  if (!ml || ml <= 0) { showToast('Enter a valid amount'); return; }
+  closeModal('modal-custom-water');
+
+  const now = new Date().toISOString();
+  if (pendingWaterMode === 'deduct') {
+    STATE.water.push({ timestamp: now, amount_ml: ml, note, deducted: true });
+    DB.insert('water_log', { timestamp: now, amount_ml: -ml });
+    showToast(`− ${ml} ml deducted`);
+  } else {
+    STATE.water.push({ timestamp: now, amount_ml: ml, note });
+    DB.insert('water_log', { timestamp: now, amount_ml: ml });
+    showToast(`💧 +${ml} ml added`);
+  }
+  saveLocal();
+  renderWater();
+  pendingWaterMode = null;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SYMPTOMS
+═══════════════════════════════════════════════════════════ */
+function renderSymptomGrid() {
+  const grid = document.getElementById('symptom-grid');
+  grid.innerHTML = SYMPTOMS.map(s => `
+    <button class="symptom-chip ${selectedSymptom === s.id ? 'selected' : ''}"
+            onclick="selectSymptom('${s.id}')">
+      <span class="symptom-chip-icon">${s.icon}</span>
+      <span class="symptom-chip-text">${s.label}</span>
+    </button>`).join('');
+
+  const card = document.getElementById('symptom-log-card');
+  if (selectedSymptom) {
+    const sym = SYMPTOMS.find(s => s.id === selectedSymptom);
+    card.style.display = 'block';
+    document.getElementById('selected-symptom-name').textContent = `${sym.icon} ${sym.label}`;
+    const row = document.getElementById('severity-row');
+    const labels = ['1 - Mild','2','3','4','5 - Severe'];
+    row.innerHTML = labels.map((l, i) => `
+      <button class="severity-btn ${selectedSeverity === i+1 ? `active-${i+1}` : ''}"
+              onclick="selectSeverity(${i+1})">${l}</button>`).join('');
+  } else {
+    card.style.display = 'none';
+  }
+}
+
+function renderCustomSeverityRow() {
+  const row = document.getElementById('custom-severity-row');
+  const labels = ['1 - Mild','2','3','4','5 - Severe'];
+  row.innerHTML = labels.map((l, i) => `
+    <button class="severity-btn ${customSeverity === i+1 ? `active-${i+1}` : ''}"
+            onclick="selectCustomSeverity(${i+1})">${l}</button>`).join('');
+}
+
+function selectSymptom(id) {
+  selectedSymptom = selectedSymptom === id ? null : id;
+  selectedSeverity = null;
+  renderSymptomGrid();
+}
+
+function selectSeverity(val) {
+  selectedSeverity = val;
+  renderSymptomGrid();
+}
+
+function selectCustomSeverity(val) {
+  customSeverity = val;
+  renderCustomSeverityRow();
+}
+
+function logSymptom() {
+  if (!selectedSymptom || !selectedSeverity) {
+    showToast('Pick a symptom and severity'); return;
+  }
+  const now = new Date().toISOString();
+  const entry = {
+    timestamp: now,
+    symptom:   selectedSymptom,
+    severity:  selectedSeverity,
+    notes:     document.getElementById('symptom-notes').value.trim(),
+  };
+  STATE.symptoms.push(entry);
+  saveLocal();
+  DB.insert('symptom_log', entry);
+  selectedSymptom = null;
+  selectedSeverity = null;
+  document.getElementById('symptom-notes').value = '';
+  renderSymptomGrid();
+  renderSymptomLog();
+  showToast('Symptom logged');
+}
+
+function logCustomSymptom() {
+  const label = document.getElementById('custom-symptom-input').value.trim();
+  if (!label) { showToast('Describe the symptom first'); return; }
+  if (!customSeverity) { showToast('Pick a severity level'); return; }
+  const now = new Date().toISOString();
+  const entry = {
+    timestamp: now,
+    symptom:   label,
+    severity:  customSeverity,
+    notes:     document.getElementById('custom-symptom-notes').value.trim(),
+    custom:    true,
+  };
+  STATE.symptoms.push(entry);
+  saveLocal();
+  DB.insert('symptom_log', { timestamp: now, symptom: label, severity: customSeverity, notes: entry.notes });
+  document.getElementById('custom-symptom-input').value = '';
+  document.getElementById('custom-symptom-notes').value = '';
+  customSeverity = null;
+  renderCustomSeverityRow();
+  renderSymptomLog();
+  showToast('Symptom logged');
+}
+
+function renderSymptomLog() {
+  const el = document.getElementById('symptom-log-list');
+  if (!STATE.symptoms.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">🌿</div><p>No symptoms logged yet today.</p></div>';
+    return;
+  }
+  const severityLabel = {1:'Mild',2:'Low',3:'Moderate',4:'High',5:'Severe'};
+  el.innerHTML = [...STATE.symptoms].reverse().map(s => {
+    const sym = SYMPTOMS.find(x => x.id === s.symptom);
+    const icon  = sym?.icon || '•';
+    const label = sym?.label || s.symptom;
+    return `
+      <div class="symptom-entry">
+        <span style="font-size:20px">${icon}</span>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:500">${escapeHtml(label)}${s.custom ? ' <span style="font-size:10px;background:var(--blush-light);color:var(--rose);padding:1px 6px;border-radius:10px">custom</span>' : ''}</div>
+          ${s.notes ? `<div style="font-size:12px;color:var(--ink-muted);margin-top:2px">${escapeHtml(s.notes)}</div>` : ''}
+          <div class="symptom-entry-time">${new Date(s.timestamp).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div>
+        </div>
+        <div class="symptom-entry-badge">Lvl ${s.severity} – ${severityLabel[s.severity]}</div>
+      </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCHEDULE / CALENDAR
+═══════════════════════════════════════════════════════════ */
+function calNav(dir) {
+  calMonth += dir;
+  if (calMonth < 0)  { calMonth = 11; calYear--; }
+  if (calMonth > 11) { calMonth = 0;  calYear++; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const events = loadEvents();
+  const now    = new Date();
+  const todayStr = todayKey();
+
+  // Month label
+  const label = new Date(calYear, calMonth, 1)
+    .toLocaleDateString('en-US', { month:'long', year:'numeric' });
+  document.getElementById('cal-month-label').textContent = label;
+
+  // Build grid
+  const firstDay = new Date(calYear, calMonth, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const daysInPrev  = new Date(calYear, calMonth, 0).getDate();
+
+  // Collect event dates for dot indicators
+  const eventDates = new Set(events.map(e => e.date));
+
+  let html = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+    .map(d => `<div class="cal-day-label">${d}</div>`).join('');
+
+  // Previous month trailing days
+  for (let i = firstDay - 1; i >= 0; i--) {
+    const d = daysInPrev - i;
+    const dateStr = `${calYear}-${String(calMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    html += `<div class="cal-day other-month ${eventDates.has(dateStr)?'has-event':''}">${d}</div>`;
+  }
+
+  // This month
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday    = dateStr === todayStr;
+    const isSelected = dateStr === calSelectedDate;
+    const hasEvent   = eventDates.has(dateStr);
+    html += `<div class="cal-day ${isToday?'today':''} ${isSelected&&!isToday?'selected':''} ${hasEvent?'has-event':''}"
+               onclick="selectCalDay('${dateStr}')">${d}</div>`;
+  }
+
+  // Fill remaining cells
+  const totalCells = firstDay + daysInMonth;
+  const remainder  = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  for (let d = 1; d <= remainder; d++) {
+    const m = String(calMonth+2).padStart(2,'0');
+    const dateStr = `${calYear}-${m}-${String(d).padStart(2,'0')}`;
+    html += `<div class="cal-day other-month">${d}</div>`;
+  }
+
+  document.getElementById('cal-grid').innerHTML = html;
+  renderCalEvents();
+}
+
+function selectCalDay(dateStr) {
+  calSelectedDate = dateStr;
+  renderCalendar();
+}
+
+function renderCalEvents() {
+  const events = loadEvents();
+  const filtered = events.filter(e => e.date === calSelectedDate).sort((a,b) => (a.time||'').localeCompare(b.time||''));
+
+  const d = new Date(calSelectedDate + 'T12:00:00');
+  const dateLabel = d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+  document.getElementById('cal-events-label').textContent = `Events on ${dateLabel}`;
+
+  const listEl = document.getElementById('cal-events-list');
+  if (!filtered.length) {
+    listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><p>No events on this day.</p></div>';
+    return;
+  }
+
+  const typeIcon = { chemo:'💉', checkup:'🩺', other:'📅' };
+  listEl.innerHTML = filtered.map(ev => `
+    <div class="event-card ${ev.type}" id="event-${ev.id}">
+      <div class="event-icon">${typeIcon[ev.type] || '📅'}</div>
+      <div class="event-body">
+        <div class="event-title">${escapeHtml(ev.title)}</div>
+        <div class="event-meta">${ev.time ? ev.time + ' · ' : ''}${ev.type.charAt(0).toUpperCase()+ev.type.slice(1)}${ev.notes ? ' · ' + escapeHtml(ev.notes) : ''}</div>
+      </div>
+      <button class="event-delete" onclick="deleteEvent('${ev.id}')" title="Delete event">✕</button>
+    </div>`).join('');
+}
+
+function deleteEvent(id) {
+  let events = loadEvents().filter(e => e.id !== id);
+  saveEvents(events);
+  renderCalendar();
+  renderTodayScheduleBanner();
+  showToast('Event removed');
+}
+
+/* Add event modal */
+function openAddEvent() {
+  selectedEventType = 'chemo';
+  updateEventTypeBtns();
+  document.getElementById('event-title-input').value = '';
+  document.getElementById('event-date-input').value = calSelectedDate;
+  document.getElementById('event-time-input').value = '';
+  document.getElementById('event-notes-input').value = '';
+  openModal('modal-add-event');
+}
+
+function selectEventType(type) {
+  selectedEventType = type;
+  updateEventTypeBtns();
+}
+
+function updateEventTypeBtns() {
+  ['chemo','checkup','other'].forEach(t => {
+    const btn = document.getElementById(`etype-${t}`);
+    btn.className = `event-type-btn ${selectedEventType === t ? `active-${t}` : ''}`;
+  });
+}
+
+function confirmAddEvent() {
+  const title = document.getElementById('event-title-input').value.trim();
+  const date  = document.getElementById('event-date-input').value;
+  if (!title) { showToast('Add a title for the event'); return; }
+  if (!date)  { showToast('Pick a date'); return; }
+
+  const events = loadEvents();
+  const ev = {
+    id:    `ev_${Date.now()}`,
+    title,
+    date,
+    time:  document.getElementById('event-time-input').value,
+    type:  selectedEventType,
+    notes: document.getElementById('event-notes-input').value.trim(),
+  };
+  events.push(ev);
+  saveEvents(events);
+
+  // Also push to Supabase schedule table
+  DB.insert('schedule_events', {
+    timestamp: new Date().toISOString(),
+    event_date: date,
+    event_time: ev.time || null,
+    event_type: ev.type,
+    title: ev.title,
+    notes: ev.notes || null,
+  });
+
+  closeModal('modal-add-event');
+  calSelectedDate = date;
+  renderCalendar();
+  renderTodayScheduleBanner();
+  showToast('📅 Event saved!');
+}
+
+/* Today's schedule banner on home page */
+function renderTodayScheduleBanner() {
+  const bannerEl = document.getElementById('today-schedule-banner');
+  const events   = loadEvents();
+  const todayStr = todayKey();
+  const todayEvts = events
+    .filter(e => e.date === todayStr)
+    .sort((a,b) => (a.time||'').localeCompare(b.time||''));
+
+  if (!todayEvts.length) {
+    bannerEl.style.display = 'none';
+    return;
+  }
+
+  const ev = todayEvts[0]; // Show the most relevant (first upcoming)
+  const typeIcon  = { chemo:'💉', checkup:'🩺', other:'📅' };
+  const typeLabel = { chemo:'Chemo Session', checkup:'Doctor Visit', other:'Appointment' };
+  const countExtra = todayEvts.length > 1 ? ` (+${todayEvts.length-1} more)` : '';
+
+  bannerEl.style.display = 'block';
+  bannerEl.innerHTML = `
+    <div class="schedule-banner" onclick="navigate('schedule')">
+      <div class="schedule-banner-icon">${typeIcon[ev.type] || '📅'}</div>
+      <div class="schedule-banner-body">
+        <div class="schedule-banner-label">Today's Schedule${countExtra}</div>
+        <div class="schedule-banner-title">${escapeHtml(ev.title)}</div>
+        ${ev.time ? `<div class="schedule-banner-time">${ev.time}</div>` : ''}
+      </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+    </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   NOTES + REFLECTION
+═══════════════════════════════════════════════════════════ */
+function selectMood(mood) {
+  selectedMood = mood;
+  document.getElementById('mood-good').className      = 'mood-btn' + (mood==='Good'      ? ' selected-good'      : '');
+  document.getElementById('mood-okay').className      = 'mood-btn' + (mood==='Okay'      ? ' selected-okay'      : '');
+  document.getElementById('mood-difficult').className = 'mood-btn' + (mood==='Difficult' ? ' selected-difficult' : '');
+}
+
+function saveReflection() {
+  if (!selectedMood) { showToast('Pick a mood first'); return; }
+  const now   = new Date().toISOString();
+  const entry = { timestamp: now, mood: selectedMood, notes: document.getElementById('mood-notes').value.trim() };
+  STATE.reflection = entry;
+  saveLocal();
+  DB.insert('daily_reflection', entry);
+  updateDashStats();
+  showToast('Reflection saved 🌿');
+}
+
+function addNote() {
+  const text = document.getElementById('note-input').value.trim();
+  if (!text) return;
+  const now   = new Date().toISOString();
+  const entry = { timestamp: now, text };
+  STATE.notes.push(entry);
+  saveLocal();
+  DB.insert('notes', { timestamp: now, text });
+  document.getElementById('note-input').value = '';
+  renderNotes();
+  showToast('Note added');
+}
+
+function renderNotes() {
+  const el = document.getElementById('notes-list');
+  if (!STATE.notes.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📝</div><p>No notes yet today.</p></div>';
+    return;
+  }
+  el.innerHTML = [...STATE.notes].reverse().map(n => `
+    <div class="note-item">
+      <div class="note-item-text">${escapeHtml(n.text)}</div>
+      <div class="note-item-time">${new Date(n.timestamp).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   REPORT
+═══════════════════════════════════════════════════════════ */
+function switchReport(type) {
+  currentReport = type;
+  document.getElementById('tab-daily').classList.toggle('active', type === 'daily');
+  document.getElementById('tab-weekly').classList.toggle('active', type === 'weekly');
+  document.getElementById('report-daily').style.display  = type === 'daily'  ? 'block' : 'none';
+  document.getElementById('report-weekly').style.display = type === 'weekly' ? 'block' : 'none';
+  renderReport();
+}
+
+function renderReport() {
+  if (currentReport === 'daily') renderDailyReport();
+  else renderWeeklyReport();
+}
+
+function renderDailyReport() {
+  const el    = document.getElementById('report-daily-content');
+  const today = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+
+  const meds   = TASKS.filter(t => t.isMed);
+  const meals  = TASKS.filter(t => t.isMeal);
+  const medsDone  = meds.filter(t => STATE.tasks[t.id]?.status === 'done').length;
+  const mealsDone = meals.filter(t => STATE.tasks[t.id]?.status === 'done').length;
+  const totalWater = netWaterTotal();
+  const waterGlasses = (totalWater / 250).toFixed(1);
+
+  // Custom snacks count
+  const snackCount = Object.values(STATE.customTasks || {})
+    .flat().filter(t => t.status === 'done').length;
+
+  const severityLabel = {1:'Mild',2:'Low',3:'Moderate',4:'High',5:'Severe'};
+  const symptomsHtml = STATE.symptoms.length
+    ? STATE.symptoms.map(s => {
+        const sym   = SYMPTOMS.find(x => x.id === s.symptom);
+        const label = sym?.label || s.symptom;
+        return `<div class="report-line"><span>${escapeHtml(label)}</span><span class="report-val">Level ${s.severity} – ${severityLabel[s.severity]}</span></div>`;
+      }).join('')
+    : '<div class="report-line"><span>No symptoms logged</span><span class="report-val">—</span></div>';
+
+  el.innerHTML = `
+    <h3>📋 Daily Report — ${today}</h3>
+    <div class="report-line"><span>Medications taken</span><span class="report-val">${medsDone} / ${meds.length}</span></div>
+    <div class="report-line"><span>Meals completed</span><span class="report-val">${mealsDone} / ${meals.length}</span></div>
+    ${snackCount ? `<div class="report-line"><span>Extra snacks / food</span><span class="report-val">${snackCount}</span></div>` : ''}
+    <div class="report-line"><span>Water intake</span><span class="report-val">${totalWater} ml (${waterGlasses} glasses)</span></div>
+    <div class="report-line"><span>Mood</span><span class="report-val">${STATE.reflection?.mood || 'Not logged'}</span></div>
+    ${STATE.reflection?.notes ? `<div class="report-line"><span>Reflection</span><span class="report-val">${escapeHtml(STATE.reflection.notes)}</span></div>` : ''}
+    <div style="margin-top:12px;margin-bottom:4px;font-size:11px;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.8px">Symptoms</div>
+    ${symptomsHtml}
+    ${STATE.notes.length ? `
+      <div style="margin-top:12px;margin-bottom:4px;font-size:11px;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.8px">Notes</div>
+      ${STATE.notes.map(n => `<div class="report-line"><span style="flex:1">${escapeHtml(n.text)}</span></div>`).join('')}` : ''}
+  `;
+}
+
+function renderWeeklyReport() {
+  const el = document.getElementById('report-weekly-content');
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    const raw = localStorage.getItem(`cc_${key}`);
+    days.push({ date: d, data: raw ? JSON.parse(raw) : null });
+  }
+
+  let totalMeds=0, possibleMeds=0, totalMeals=0, possibleMeals=0, totalWater=0, daysWithData=0;
+  const symptomCounts = {};
+  const moods = [];
+
+  days.forEach(({ data }) => {
+    if (!data) return;
+    daysWithData++;
+    const meds  = TASKS.filter(t => t.isMed);
+    const meals = TASKS.filter(t => t.isMeal);
+    possibleMeds  += meds.length;
+    possibleMeals += meals.length;
+    totalMeds   += meds.filter(t => data.tasks?.[t.id]?.status === 'done').length;
+    totalMeals  += meals.filter(t => data.tasks?.[t.id]?.status === 'done').length;
+    (data.water || []).forEach(w => { totalWater += w.deducted ? -w.amount_ml : w.amount_ml; });
+    (data.symptoms || []).forEach(s => {
+      const key = s.custom ? s.symptom : s.symptom;
+      symptomCounts[key] = (symptomCounts[key] || 0) + 1;
+    });
+    if (data.reflection?.mood) moods.push(data.reflection.mood);
+  });
+
+  const avgWater    = daysWithData ? Math.round(Math.max(0, totalWater) / daysWithData) : 0;
+  const topSymptom  = Object.entries(symptomCounts).sort((a,b) => b[1]-a[1])[0];
+  const moodCounts  = moods.reduce((acc,m) => { acc[m]=(acc[m]||0)+1; return acc; }, {});
+  const topMood     = Object.entries(moodCounts).sort((a,b) => b[1]-a[1])[0];
+
+  el.innerHTML = `
+    <h3>📊 Weekly Report — Last 7 Days</h3>
+    <div class="report-line"><span>Medication adherence</span><span class="report-val">${possibleMeds ? Math.round((totalMeds/possibleMeds)*100) : 0}%</span></div>
+    <div class="report-line"><span>Meal completion</span><span class="report-val">${totalMeals} / ${possibleMeals}</span></div>
+    <div class="report-line"><span>Avg. water per day</span><span class="report-val">${avgWater} ml</span></div>
+    <div class="report-line"><span>Most frequent symptom</span><span class="report-val">${topSymptom ? (SYMPTOMS.find(s=>s.id===topSymptom[0])?.label || topSymptom[0]) + ` (${topSymptom[1]}x)` : 'None'}</span></div>
+    <div class="report-line"><span>Mood trend</span><span class="report-val">${topMood ? `${topMood[0]} (${topMood[1]}/${moods.length} days)` : '—'}</span></div>
+    <div class="report-line"><span>Days with data</span><span class="report-val">${daysWithData} of 7</span></div>
+  `;
+}
+
+async function exportPDF(type) {
+  showToast('Generating PDF…');
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
+  const today = new Date().toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(18);
+  doc.setTextColor(78,116,82);
+  doc.text('Care Companion', 20, 20);
+
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(11);
+  doc.setTextColor(90,107,92);
+  doc.text(`${type === 'daily' ? 'Daily' : 'Weekly'} Report — ${today}`, 20, 28);
+  doc.text(`Patient: ${CONFIG.patientName}`, 20, 36);
+  doc.setDrawColor(184,212,186);
+  doc.line(20, 40, 190, 40);
+
+  let y = 48;
+  const addLine = (label, val) => {
+    doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(50,50,50);
+    doc.text(label, 20, y);
+    doc.setFont('helvetica','bold');
+    doc.text(String(val), 150, y, { align:'right' });
+    y += 8;
+    if (y > 270) { doc.addPage(); y = 20; }
+  };
+
+  if (type === 'daily') {
+    const meds  = TASKS.filter(t => t.isMed);
+    const meals = TASKS.filter(t => t.isMeal);
+    doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(78,116,82);
+    doc.text('Daily Summary', 20, y); y += 8;
+    addLine('Medications', `${meds.filter(t=>STATE.tasks[t.id]?.status==='done').length} / ${meds.length}`);
+    addLine('Meals', `${meals.filter(t=>STATE.tasks[t.id]?.status==='done').length} / ${meals.length}`);
+    addLine('Water', `${netWaterTotal()} ml`);
+    addLine('Mood', STATE.reflection?.mood || 'Not logged');
+    y += 4;
+
+    if (STATE.symptoms.length) {
+      doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(78,116,82);
+      doc.text('Symptoms', 20, y); y += 8;
+      STATE.symptoms.forEach(s => {
+        const sym = SYMPTOMS.find(x => x.id === s.symptom);
+        addLine(sym?.label || s.symptom, `Severity: ${s.severity}/5`);
+      });
+    }
+
+    if (STATE.reflection?.notes) {
+      y += 4;
+      doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(78,116,82);
+      doc.text('Reflection', 20, y); y += 8;
+      doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(50,50,50);
+      const lines = doc.splitTextToSize(STATE.reflection.notes, 160);
+      doc.text(lines, 20, y); y += lines.length * 6;
+    }
+  }
+
+  doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(150,150,150);
+  doc.text('Generated by Care Companion · For family use only', 20, 285);
+  doc.save(`care-companion-${type}-${todayKey()}.pdf`);
+  showToast('PDF downloaded!');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MODAL HELPERS
+═══════════════════════════════════════════════════════════ */
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  // Close when tapping backdrop
+  document.getElementById(id).onclick = function(e) {
+    if (e.target === this) closeModal(id);
+  };
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SYNC / ONLINE
+═══════════════════════════════════════════════════════════ */
+function setupOnlineHandlers() {
+  window.addEventListener('online', () => {
+    isOnline = true;
+    document.getElementById('offline-badge').classList.remove('visible');
+    setSyncStatus('syncing');
+    DB.flushQueue().then(() => setSyncStatus('synced'));
+  });
+  window.addEventListener('offline', () => {
+    isOnline = false;
+    document.getElementById('offline-badge').classList.add('visible');
+    setSyncStatus('error');
+  });
+  if (!isOnline) document.getElementById('offline-badge').classList.add('visible');
+}
+
+function setSyncStatus(status) {
+  const dot = document.getElementById('sync-dot');
+  dot.className = 'sync-dot ' + status;
+  dot.title = status === 'synced' ? 'All saved' : status === 'syncing' ? 'Saving...' : 'Offline – saved locally';
+}
+
+function renderSyncStatus() { setSyncStatus(isOnline ? 'synced' : 'error'); }
+
+/* ═══════════════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════════════ */
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════════════ */
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SERVICE WORKER
+═══════════════════════════════════════════════════════════ */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('SW:', reg.scope))
+      .catch(err => console.warn('SW failed:', err));
+  });
+}
+
+/* ─── START ──────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
