@@ -708,6 +708,19 @@
     <div class="page fade-in" id="page-notes">
       <div class="card">
         <div class="card-title" style="font-family:var(--font-serif)">How was today, Mama?</div>
+        <!-- Shows current reflection if already logged -->
+        <div id="reflection-logged" style="display:none;margin-bottom:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--sage-pale);border-radius:var(--radius-sm)">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span id="reflection-logged-emoji" style="font-size:20px">🙂</span>
+              <div>
+                <div id="reflection-logged-mood" style="font-size:13px;font-weight:500;color:var(--sage-deep)"></div>
+                <div id="reflection-logged-time" style="font-size:11px;color:var(--ink-muted)"></div>
+              </div>
+            </div>
+            <button onclick="confirmDeleteReflection()" style="background:rgba(201,122,122,0.12);border:none;color:var(--rose);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:500;cursor:pointer">✕ Remove</button>
+          </div>
+        </div>
         <div class="mood-row">
           <button class="mood-btn" id="mood-good" onclick="selectMood('Good')">
             <span class="emoji">🙂</span> Good
@@ -720,7 +733,7 @@
           </button>
         </div>
         <textarea id="mood-notes" rows="3" placeholder="Anything you want to add about today…"></textarea>
-        <button class="btn-primary" onclick="saveReflection()">Save Reflection</button>
+        <button class="btn-primary" onclick="saveReflection()" id="save-reflection-btn">Save Reflection</button>
       </div>
 
       <div class="section-label">Notes</div>
@@ -1091,6 +1104,7 @@ function init() {
   renderSymptomGrid();
   renderSymptomLog();
   renderNotes();
+  renderReflectionCard();
   renderSyncStatus();
   setupOnlineHandlers();
   renderTodayScheduleBanner();
@@ -1805,7 +1819,54 @@ function saveReflection() {
   saveLocal();
   DB.insert('daily_reflection', entry);
   updateDashStats();
+  renderReflectionCard();
   showToast('Reflection saved 🌿');
+}
+
+function renderReflectionCard() {
+  const moodEmoji = { Good:'🙂', Okay:'😐', Difficult:'☹️' };
+  const loggedEl  = document.getElementById('reflection-logged');
+
+  if (STATE.reflection) {
+    const mood = STATE.reflection.mood;
+    const time = new Date(STATE.reflection.timestamp).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    document.getElementById('reflection-logged-emoji').textContent = moodEmoji[mood];
+    document.getElementById('reflection-logged-mood').textContent  = `${mood} · ${STATE.reflection.notes ? '"'+STATE.reflection.notes+'"' : 'No note added'}`;
+    document.getElementById('reflection-logged-time').textContent  = `Logged at ${time}`;
+    loggedEl.style.display = 'block';
+    // Pre-fill the form so they can update it
+    selectMood(mood);
+    document.getElementById('mood-notes').value = STATE.reflection.notes || '';
+    document.getElementById('save-reflection-btn').textContent = 'Update Reflection';
+  } else {
+    loggedEl.style.display = 'none';
+    selectedMood = null;
+    document.getElementById('mood-good').className      = 'mood-btn';
+    document.getElementById('mood-okay').className      = 'mood-btn';
+    document.getElementById('mood-difficult').className = 'mood-btn';
+    document.getElementById('mood-notes').value = '';
+    document.getElementById('save-reflection-btn').textContent = 'Save Reflection';
+  }
+}
+
+function confirmDeleteReflection() {
+  showConfirm(
+    'Remove today\'s reflection?',
+    'This will clear the mood and notes logged for today.',
+    'Remove',
+    () => {
+      STATE.reflection = null;
+      saveLocal();
+      updateDashStats();
+      renderReflectionCard();
+      // Also update the mood detail popup if open
+      const contentEl = document.getElementById('dash-detail-content');
+      if (contentEl && document.getElementById('modal-dash-detail').classList.contains('open')) {
+        closeModal('modal-dash-detail');
+      }
+      showToast('Reflection removed');
+    }
+  );
 }
 
 function addNote() {
@@ -2198,7 +2259,8 @@ function openDashDetail(type) {
           <div style="font-size:18px;font-weight:600;color:${moodText[mood]};font-family:var(--font-serif)">${mood}</div>
           <div style="font-size:11px;color:var(--ink-muted);margin-top:4px">${new Date(STATE.reflection.timestamp).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div>
         </div>
-        ${STATE.reflection.notes ? `<div style="font-size:14px;line-height:1.6;color:var(--ink-soft);font-style:italic;padding:12px;background:var(--cream);border-radius:var(--radius-sm)">"${escapeHtml(STATE.reflection.notes)}"</div>` : ''}`;
+        ${STATE.reflection.notes ? `<div style="font-size:14px;line-height:1.6;color:var(--ink-soft);font-style:italic;padding:12px;background:var(--cream);border-radius:var(--radius-sm)">"${escapeHtml(STATE.reflection.notes)}"</div>` : ''}
+        <button onclick="confirmDeleteReflection()" style="width:100%;height:40px;margin-top:12px;border-radius:var(--radius-md);border:1.5px solid rgba(201,122,122,0.3);background:transparent;color:var(--rose);font-family:var(--font-sans);font-size:13px;font-weight:500;cursor:pointer">✕ Remove Reflection</button>`;
     } else {
       html = '<div class="empty-state"><div class="empty-icon">🌿</div><p>No reflection logged yet today.<br>Go to the Journal tab to add one.</p></div>';
     }
