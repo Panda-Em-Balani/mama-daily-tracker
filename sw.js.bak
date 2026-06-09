@@ -4,7 +4,7 @@
 ═══════════════════════════════════════════════════════════════ */
 
 // Version is auto-generated at build time — never needs manual changes
-const APP_VERSION  = 'mama-daily-20260609-1529';
+const APP_VERSION  = 'mama-daily-__BUILDTIME__';
 const CACHE_NAME   = `mama-daily-${APP_VERSION}`;
 const BASE         = '/mama-daily-tracker';
 const ASSETS = [
