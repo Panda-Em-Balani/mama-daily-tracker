@@ -1044,9 +1044,9 @@ const CONFIG = {
   callName:         "Mama",     // used in on-screen motivational UI
   waterGoalMl:      2000,
   waterGoalGlasses: 8,
-  supabaseUrl:      "https://jocjrgsoilqpxmcqreup.supabase.co",
-  supabaseKey:      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvY2pyZ3NvaWxxcHhtY3FyZXVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NDQ2OTksImV4cCI6MjA5NjUyMDY5OX0.WwCD4c4LzqWsbaH5xYOQuyi8BbrW3JxJs99NPPRHNag",
-  useSupabase:      true,      // set true after connecting Supabase
+  supabaseUrl:      "YOUR_SUPABASE_URL",
+  supabaseKey:      "YOUR_SUPABASE_ANON_KEY",
+  useSupabase:      false,      // set true after connecting Supabase
 };
 
 /* ═══════════════════════════════════════════════════════════
@@ -1357,13 +1357,14 @@ async function loadEventsFromSupabase() {
   const rows = await DB.select('schedule_events', 'order=event_date.asc');
   if (!rows) return loadEvents();
   const events = rows.map(r => ({
-    id:     r.local_id || `ev_${r.id}`,
-    title:  r.title,
-    date:   r.event_date,
-    time:   r.event_time || '',
-    type:   r.event_type,
-    notes:  r.notes || '',
-    photos: r.photos || [],
+    id:        r.local_id || `ev_${r.id}`,  // use local_id if set, else generate from db id
+    supabase_id: r.id,                        // always store the real Supabase integer id
+    title:     r.title,
+    date:      r.event_date,
+    time:      r.event_time || '',
+    type:      r.event_type,
+    notes:     r.notes || '',
+    photos:    r.photos || [],
   }));
   saveEvents(events);
   return events;
@@ -2106,9 +2107,14 @@ async function deleteEvent(id) {
   const events = loadEvents();
   const ev = events.find(e => e.id === id);
   if (ev) {
-    // Try local_id first, fall back to matching by title + date
-    await DB.delete('schedule_events', `local_id=eq.${encodeURIComponent(id)}`);
-    await DB.delete('schedule_events', `title=eq.${encodeURIComponent(ev.title)}&event_date=eq.${ev.date}`);
+    // Use supabase_id (integer PK) if available — most reliable
+    if (ev.supabase_id) {
+      await DB.delete('schedule_events', `id=eq.${ev.supabase_id}`);
+    } else {
+      // Fallback: try local_id, then title+date
+      await DB.delete('schedule_events', `local_id=eq.${encodeURIComponent(id)}`);
+      await DB.delete('schedule_events', `title=eq.${encodeURIComponent(ev.title)}&event_date=eq.${ev.date}&event_type=eq.${ev.type}`);
+    }
   }
   saveEvents(events.filter(e => e.id !== id));
   renderCalendar();
