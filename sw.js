@@ -1,9 +1,9 @@
 /* ═══════════════════════════════════════════════════════════════
-   Mama Daily Tracker — Service Worker v3
-   Fixed paths for GitHub Pages subfolder deployment
+   Mama Daily Tracker — Service Worker v4
+   Auto-update: bumps cache on every deploy, notifies app to reload
 ═══════════════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'mama-daily-v3';
+const CACHE_VERSION = 'mama-daily-v4';
 const BASE = '/mama-daily-tracker';
 const ASSETS = [
   BASE + '/',
@@ -13,28 +13,38 @@ const ASSETS = [
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
 ];
 
+/* ─── INSTALL: cache all assets ────────────────────────────── */
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache =>
-      cache.addAll(ASSETS).catch(err => console.warn('[SW] Some assets failed to cache:', err))
+    caches.open(CACHE_VERSION).then(cache =>
+      cache.addAll(ASSETS).catch(err => console.warn('[SW] Cache failed:', err))
     )
   );
+  // Activate immediately — don't wait for old SW to die
   self.skipWaiting();
 });
 
+/* ─── ACTIVATE: wipe old caches, take control now ─────────── */
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
+      Promise.all(
+        keys
+          .filter(k => k !== CACHE_VERSION)
+          .map(k => {
+            console.log('[SW] Deleting old cache:', k);
+            return caches.delete(k);
+          })
+      )
+    ).then(() => self.clients.claim()) // take control of all open tabs immediately
   );
-  self.clients.claim();
 });
 
+/* ─── FETCH: cache-first for assets, network-first for API ── */
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // Supabase API — network first, no caching
+  // Supabase — always network, never cache
   if (url.hostname.includes('supabase.co')) {
     event.respondWith(
       fetch(event.request).catch(() =>
@@ -46,14 +56,14 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // App shell + static assets — cache first
+  // Everything else — cache first, fall back to network
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;
       return fetch(event.request).then(response => {
         if (response.ok) {
           const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          caches.open(CACHE_VERSION).then(cache => cache.put(event.request, clone));
         }
         return response;
       }).catch(() => {
@@ -63,4 +73,9 @@ self.addEventListener('fetch', event => {
       });
     })
   );
+});
+
+/* ─── MESSAGE: tell the app a new version is ready ────────── */
+self.addEventListener('message', event => {
+  if (event.data === 'skipWaiting') self.skipWaiting();
 });

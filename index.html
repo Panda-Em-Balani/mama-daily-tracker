@@ -2051,13 +2051,37 @@ function escapeHtml(str) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   SERVICE WORKER
+   SERVICE WORKER — auto-update on new deploy
 ═══════════════════════════════════════════════════════════ */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js')
-      .then(reg => console.log('SW:', reg.scope))
-      .catch(err => console.warn('SW failed:', err));
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      console.log('[App] SW registered:', reg.scope);
+
+      // Check for updates every time the app is opened
+      reg.update();
+
+      // When a new SW is waiting, activate it and reload
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            // New version ready — tell SW to skip waiting, then reload
+            newWorker.postMessage('skipWaiting');
+          }
+        });
+      });
+
+    }).catch(err => console.warn('[App] SW failed:', err));
+
+    // When SW takes control (after skipWaiting), reload the page silently
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
   });
 }
 
