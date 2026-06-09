@@ -206,9 +206,6 @@
     .task-item.done { background: var(--sage-pale); border-color: rgba(122,158,126,0.2); }
     .task-item.skipped { background: #faf5f5; border-color: rgba(201,122,122,0.2); opacity: 0.8; }
     .task-item.custom { border-left: 3px solid var(--gold); }
-    .task-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; background: var(--sage-pale); }
-    .task-item.done .task-icon { background: var(--sage-light); }
-    .task-item.skipped .task-icon { background: #f5e0e0; }
     .task-body { flex: 1; min-width: 0; }
     .task-name { font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 2px; }
     .task-item.done .task-name { text-decoration: line-through; color: var(--ink-muted); }
@@ -451,14 +448,17 @@
       cursor: pointer;
     }
 
-    /* ─── READ ONLY MODE ─────────────────────────────────────── */
+    /* ─── READONLY BANNER — more prominent ───────────────────── */
     .readonly-banner {
-      background: linear-gradient(135deg, #c9a84c, #a07830);
-      color: white; text-align: center;
-      padding: 10px 16px; font-size: 13px; font-weight: 500;
-      letter-spacing: 0.2px; flex-shrink: 0; display: none;
+      background: #c9a84c;
+      color: white; flex-shrink: 0; display: none;
+      padding: 0 20px; height: 40px;
+      align-items: center; justify-content: center; gap: 8px;
     }
-    .readonly-banner.visible { display: block; }
+    .readonly-banner.visible { display: flex; }
+    .readonly-banner-icon { font-size: 16px; }
+    .readonly-banner-text { font-size: 13px; font-weight: 600; letter-spacing: 0.3px; }
+    .readonly-banner-sub { font-size: 11px; opacity: 0.85; }
     body.readonly .task-btn, body.readonly .section-add-btn,
     body.readonly .btn-primary, body.readonly .btn-secondary,
     body.readonly .water-btn, body.readonly .symptom-chip,
@@ -467,6 +467,38 @@
     body.readonly .event-type-btn, body.readonly textarea,
     body.readonly input { pointer-events: none; opacity: 0.5; }
     body.readonly .section-add-btn { display: none; }
+
+    /* ─── JOURNAL SUB-TABS ───────────────────────────────────── */
+    .journal-tabs { display: flex; background: rgba(122,158,126,0.1); border-radius: 10px; padding: 3px; margin-bottom: 16px; }
+    .journal-tab { flex: 1; height: 34px; border-radius: 8px; border: none; background: none; font-family: var(--font-sans); font-size: 13px; font-weight: 500; color: var(--ink-muted); cursor: pointer; transition: all 0.2s; -webkit-tap-highlight-color: transparent; }
+    .journal-tab.active { background: white; color: var(--sage-deep); box-shadow: var(--shadow-sm); }
+    .journal-pane { display: none; }
+    .journal-pane.active { display: block; }
+    .journal-explainer { font-size: 12px; color: var(--ink-muted); line-height: 1.5; padding: 10px 12px; background: var(--sage-pale); border-radius: var(--radius-sm); margin-bottom: 14px; }
+
+    /* ─── MESSAGES BOARD ─────────────────────────────────────── */
+    .messages-board { background: var(--warm-white); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 12px; }
+    .messages-board-header { background: linear-gradient(135deg, var(--sage), var(--sage-deep)); padding: 12px 16px; color: white; }
+    .messages-board-title { font-family: var(--font-serif); font-size: 14px; font-weight: 600; }
+    .messages-board-sub { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+    .message-item { padding: 12px 16px; border-bottom: 1px solid rgba(122,158,126,0.1); }
+    .message-item:last-child { border-bottom: none; }
+    .message-author { font-size: 10px; font-weight: 600; color: var(--sage-deep); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .message-text { font-size: 14px; color: var(--ink); line-height: 1.5; font-family: var(--font-serif); font-style: italic; }
+    .message-empty { padding: 16px; font-size: 13px; color: var(--ink-muted); text-align: center; }
+    .message-edit-btn { font-size: 10px; color: var(--sage-deep); background: var(--sage-pale); border: none; border-radius: 4px; padding: 2px 6px; cursor: pointer; margin-left: 6px; }
+
+    /* ─── TASK SVG ICONS ─────────────────────────────────────── */
+    .task-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--sage-pale); }
+    .task-icon svg { width: 18px; height: 18px; stroke: var(--sage-deep); stroke-width: 1.8; fill: none; }
+    .task-item.done .task-icon { background: var(--sage-light); }
+    .task-item.done .task-icon svg { stroke: var(--sage-deep); }
+    .task-item.skipped .task-icon { background: #f5e0e0; }
+    .task-item.skipped .task-icon svg { stroke: var(--rose); }
+
+    /* ─── EVENT DETAIL MODAL ─────────────────────────────────── */
+    .event-detail-photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
+    .event-detail-photo { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--radius-sm); cursor: pointer; }
 
     /* ─── CONFIRM DIALOG ─────────────────────────────────────── */
     .confirm-backdrop {
@@ -557,14 +589,19 @@
     <div class="topbar-right">
       <span class="offline-badge" id="offline-badge">Offline</span>
       <span class="sync-dot" id="sync-dot" title="Sync status"></span>
-      <button onclick="toggleReadOnly()" id="readonly-btn" title="Toggle view only mode"
-        style="background:none;border:none;font-size:18px;cursor:pointer;padding:2px;-webkit-tap-highlight-color:transparent">🔓</button>
+      <button onclick="toggleReadOnly()" id="readonly-btn"
+        style="-webkit-tap-highlight-color:transparent;background:rgba(122,158,126,0.1);border:1.5px solid rgba(122,158,126,0.25);border-radius:20px;padding:4px 10px;font-family:var(--font-sans);font-size:11px;font-weight:500;color:var(--ink-soft);cursor:pointer;display:flex;align-items:center;gap:4px;transition:all 0.2s">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        View Only
+      </button>
     </div>
   </header>
 
   <!-- READ ONLY BANNER -->
   <div class="readonly-banner" id="readonly-banner">
-    🔒 View Only Mode — tap the lock in the top bar to edit
+    <span class="readonly-banner-icon">🔒</span>
+    <span class="readonly-banner-text">View Only Mode</span>
+    <span class="readonly-banner-sub">— tap the lock icon to edit</span>
   </div>
 
   <!-- SCROLL AREA -->
@@ -572,10 +609,12 @@
 
     <!-- ── HOME PAGE ───────────────────────────────────────── -->
     <div class="page active fade-in" id="page-home">
-      <div class="hero">
+      <div class="hero" id="hero-card">
         <div class="hero-greeting" id="hero-greeting">Good morning,</div>
         <div class="hero-name" id="hero-name">Mama</div>
         <div class="hero-affirmation" id="hero-affirmation">"You are stronger than you think."</div>
+        <!-- Family messages — shown inside hero if any exist -->
+        <div id="hero-messages" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.2)"></div>
         <div class="progress-row">
           <div class="progress-bar-wrap">
             <div class="progress-bar-fill" id="home-progress-fill" style="width:0%"></div>
@@ -589,22 +628,30 @@
 
       <div class="stats-grid">
         <div class="stat-card" onclick="openDashDetail('meds')" style="cursor:pointer">
-          <div class="stat-icon">💊</div>
+          <div class="stat-icon" style="background:rgba(122,158,126,0.12);width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:8px">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--sage-deep)" stroke-width="1.8"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2v-4M9 21H5a2 2 0 01-2-2v-4m0 0h18"/></svg>
+          </div>
           <div class="stat-value" id="dash-meds">—</div>
           <div class="stat-label">Medications</div>
         </div>
         <div class="stat-card" onclick="openDashDetail('meals')" style="cursor:pointer">
-          <div class="stat-icon">🍽️</div>
+          <div class="stat-icon" style="background:rgba(201,160,76,0.12);width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:8px">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>
+          </div>
           <div class="stat-value" id="dash-meals">—</div>
           <div class="stat-label">Meals</div>
         </div>
         <div class="stat-card" onclick="openDashDetail('water')" style="cursor:pointer">
-          <div class="stat-icon">💧</div>
+          <div class="stat-icon" style="background:rgba(122,176,201,0.12);width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:8px">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--sky-deep)" stroke-width="1.8"><path d="M12 2C6 8 4 12 4 15a8 8 0 0016 0c0-3-2-7-8-13z"/></svg>
+          </div>
           <div class="stat-value" id="dash-water">—</div>
           <div class="stat-label">Hydration</div>
         </div>
         <div class="stat-card" onclick="openDashDetail('mood')" style="cursor:pointer">
-          <div class="stat-icon" id="dash-mood-icon">😊</div>
+          <div class="stat-icon" id="dash-mood-icon" style="background:rgba(160,140,200,0.12);width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:8px">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--lavender)" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+          </div>
           <div class="stat-value" id="dash-mood">—</div>
           <div class="stat-label">Today's Mood</div>
         </div>
@@ -706,40 +753,55 @@
 
     <!-- ── JOURNAL/NOTES PAGE ──────────────────────────────── -->
     <div class="page fade-in" id="page-notes">
-      <div class="card">
-        <div class="card-title" style="font-family:var(--font-serif)">How was today, Mama?</div>
-        <!-- Shows current reflection if already logged -->
-        <div id="reflection-logged" style="display:none;margin-bottom:12px">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--sage-pale);border-radius:var(--radius-sm)">
-            <div style="display:flex;align-items:center;gap:8px">
-              <span id="reflection-logged-emoji" style="font-size:20px">🙂</span>
-              <div>
-                <div id="reflection-logged-mood" style="font-size:13px;font-weight:500;color:var(--sage-deep)"></div>
-                <div id="reflection-logged-time" style="font-size:11px;color:var(--ink-muted)"></div>
-              </div>
-            </div>
-            <button onclick="confirmDeleteReflection()" style="background:rgba(201,122,122,0.12);border:none;color:var(--rose);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:500;cursor:pointer">✕ Remove</button>
-          </div>
-        </div>
-        <div class="mood-row">
-          <button class="mood-btn" id="mood-good" onclick="selectMood('Good')">
-            <span class="emoji">🙂</span> Good
-          </button>
-          <button class="mood-btn" id="mood-okay" onclick="selectMood('Okay')">
-            <span class="emoji">😐</span> Okay
-          </button>
-          <button class="mood-btn" id="mood-difficult" onclick="selectMood('Difficult')">
-            <span class="emoji">☹️</span> Difficult
-          </button>
-        </div>
-        <textarea id="mood-notes" rows="3" placeholder="Anything you want to add about today…"></textarea>
-        <button class="btn-primary" onclick="saveReflection()" id="save-reflection-btn">Save Reflection</button>
+      <div class="journal-tabs">
+        <button class="journal-tab active" id="jtab-reflection" onclick="switchJournalTab('reflection')">Reflection</button>
+        <button class="journal-tab" id="jtab-notes" onclick="switchJournalTab('notes')">Notes</button>
       </div>
 
-      <div class="section-label">Notes</div>
-      <textarea id="note-input" rows="3" placeholder="Write something… how you feel, what you noticed, anything."></textarea>
-      <button class="btn-primary" onclick="addNote()">Add Note</button>
-      <div id="notes-list" style="margin-top:16px"></div>
+      <!-- REFLECTION PANE -->
+      <div class="journal-pane active" id="jpane-reflection">
+        <div class="journal-explainer">
+          Record how Mama feels at the end of each day — mood and a few words. This gets included in doctor reports.
+        </div>
+        <div class="card">
+          <div class="card-title" style="font-family:var(--font-serif)">How was today, Mama?</div>
+          <div id="reflection-logged" style="display:none;margin-bottom:12px">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--sage-pale);border-radius:var(--radius-sm)">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span id="reflection-logged-emoji" style="font-size:20px">🙂</span>
+                <div>
+                  <div id="reflection-logged-mood" style="font-size:13px;font-weight:500;color:var(--sage-deep)"></div>
+                  <div id="reflection-logged-time" style="font-size:11px;color:var(--ink-muted)"></div>
+                </div>
+              </div>
+              <button onclick="confirmDeleteReflection()" style="background:rgba(201,122,122,0.12);border:none;color:var(--rose);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:500;cursor:pointer">✕ Remove</button>
+            </div>
+          </div>
+          <div class="mood-row">
+            <button class="mood-btn" id="mood-good" onclick="selectMood('Good')">
+              <span class="emoji">🙂</span> Good
+            </button>
+            <button class="mood-btn" id="mood-okay" onclick="selectMood('Okay')">
+              <span class="emoji">😐</span> Okay
+            </button>
+            <button class="mood-btn" id="mood-difficult" onclick="selectMood('Difficult')">
+              <span class="emoji">☹️</span> Difficult
+            </button>
+          </div>
+          <textarea id="mood-notes" rows="3" placeholder="Anything you want to add about today…"></textarea>
+          <button class="btn-primary" onclick="saveReflection()" id="save-reflection-btn">Save Reflection</button>
+        </div>
+      </div>
+
+      <!-- NOTES PANE -->
+      <div class="journal-pane" id="jpane-notes">
+        <div class="journal-explainer">
+          A free space to write anything — observations, questions for the doctor, or things to remember. Only you can see these.
+        </div>
+        <textarea id="note-input" rows="3" placeholder="Write something… how she looked today, a question for the doctor, anything."></textarea>
+        <button class="btn-primary" onclick="addNote()">Add Note</button>
+        <div id="notes-list" style="margin-top:16px"></div>
+      </div>
     </div>
 
     <!-- ── REPORT PAGE ─────────────────────────────────────── -->
@@ -789,6 +851,37 @@
   </nav>
 </div>
 
+<!-- Event detail modal -->
+<div class="modal-backdrop" id="modal-event-detail">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div id="event-detail-content"></div>
+    <button class="btn-secondary" onclick="closeModal('modal-event-detail')" style="margin-top:12px">Close</button>
+  </div>
+</div>
+
+<!-- Message from family modal -->
+<div class="modal-backdrop" id="modal-message">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Leave a message for Mama</div>
+    <div class="modal-sub">Your message will show on the home screen</div>
+    <label class="form-label">Who is this from?</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px" id="author-btns">
+      <button class="event-type-btn" id="author-Sisley"   onclick="selectAuthor('Sisley')">Sisley</button>
+      <button class="event-type-btn" id="author-Emmanuel" onclick="selectAuthor('Emmanuel')">Emmanuel</button>
+      <button class="event-type-btn" id="author-Benett"   onclick="selectAuthor('Benett')">Benett</button>
+      <button class="event-type-btn" id="author-Guess"    onclick="selectAuthor('Guess')">Guess</button>
+    </div>
+    <label class="form-label">Your message</label>
+    <textarea id="message-input" rows="3" placeholder="e.g. Good morning Ma, thinking of you today!"></textarea>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeModal('modal-message')">Cancel</button>
+      <button class="modal-btn-confirm" onclick="confirmMessage()">Post Message</button>
+    </div>
+  </div>
+</div>
+
 <!-- Dashboard detail modal -->
 <div class="modal-backdrop" id="modal-dash-detail">
   <div class="modal-sheet">
@@ -820,6 +913,20 @@
 <!-- ═══════════════════════════════════════════════
      MODALS
 ═══════════════════════════════════════════════ -->
+
+<!-- Medication note modal (Done) -->
+<div class="modal-backdrop" id="modal-med-note">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-med-note-title">Medication taken 💊</div>
+    <div class="modal-sub">Add a note if needed (optional)</div>
+    <textarea id="med-note-input" rows="3" placeholder="e.g. Taken after breakfast, felt slight nausea…"></textarea>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeModal('modal-med-note')">Cancel</button>
+      <button class="modal-btn-confirm" onclick="confirmMedNote()">Save & Mark Done</button>
+    </div>
+  </div>
+</div>
 
 <!-- Food note modal (Done) -->
 <div class="modal-backdrop" id="modal-food-note">
@@ -944,28 +1051,50 @@ const STATE = {
 /* ═══════════════════════════════════════════════════════════
    STATIC DATA
 ═══════════════════════════════════════════════════════════ */
+/* ── SVG icon map ─────────────────────────────────────────── */
+const TASK_ICONS = {
+  meal:  `<svg viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>`,
+  med:   `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>`,
+  water: `<svg viewBox="0 0 24 24"><path d="M12 2C6 8 4 12 4 15a8 8 0 0016 0c0-3-2-7-8-13z"/></svg>`,
+  walk:  `<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><path d="M12 7l-2 6 4 2-2 6M8 12l-3 2M16 12l3 2"/></svg>`,
+  snack: `<svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>`,
+};
+
 const TASKS = [
-  { id:"breakfast",     label:"Breakfast",            icon:"🍳", group:"morning",   isMeal:true  },
-  { id:"med-morning",   label:"Morning Medication",   icon:"💊", group:"morning",   isMed:true   },
-  { id:"lunch",         label:"Lunch",                icon:"🍲", group:"afternoon", isMeal:true  },
-  { id:"med-afternoon", label:"Afternoon Medication", icon:"💊", group:"afternoon", isMed:true   },
-  { id:"water-check",   label:"Hydration Check-in",   icon:"💧", group:"afternoon"              },
-  { id:"walk",          label:"Walk / Light Exercise",icon:"🚶", group:"afternoon"              },
-  { id:"dinner",        label:"Dinner",               icon:"🍽️", group:"evening",   isMeal:true  },
-  { id:"med-evening",   label:"Evening Medication",   icon:"💊", group:"evening",   isMed:true   },
+  { id:"breakfast",     label:"Breakfast",            iconKey:"meal",  group:"morning",   isMeal:true  },
+  { id:"med-morning",   label:"Morning Medication",   iconKey:"med",   group:"morning",   isMed:true   },
+  { id:"lunch",         label:"Lunch",                iconKey:"meal",  group:"afternoon", isMeal:true  },
+  { id:"med-afternoon", label:"Afternoon Medication", iconKey:"med",   group:"afternoon", isMed:true   },
+  { id:"water-check",   label:"Hydration Check-in",   iconKey:"water", group:"afternoon"              },
+  { id:"walk",          label:"Walk / Light Exercise",iconKey:"walk",  group:"afternoon"              },
+  { id:"dinner",        label:"Dinner",               iconKey:"meal",  group:"evening",   isMeal:true  },
+  { id:"med-evening",   label:"Evening Medication",   iconKey:"med",   group:"evening",   isMed:true   },
 ];
 
+const SYMPTOM_ICONS = {
+  nausea:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M8 15s1.5-2 4-2 4 2 4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>`,
+  fatigue:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>`,
+  appetite:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>`,
+  dizziness:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><path d="M12 8v4l3 3"/></svg>`,
+  pain:         `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+  constipation: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>`,
+  diarrhea:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`,
+  sleep:        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>`,
+  'mouth-sores':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 3 4 3 4-3 4-3"/></svg>`,
+  numbness:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 11V6a2 2 0 00-2-2v0a2 2 0 00-2 2v0"/><path d="M14 10V4a2 2 0 00-2-2v0a2 2 0 00-2 2v2"/><path d="M10 10.5V6a2 2 0 00-2-2v0a2 2 0 00-2 2v8"/><path d="M18 11a2 2 0 114 0v3a8 8 0 01-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 012.83-2.82L7 15"/></svg>`,
+};
+
 const SYMPTOMS = [
-  { id:"nausea",       label:"Nausea",          icon:"🤢" },
-  { id:"fatigue",      label:"Fatigue",         icon:"😴" },
-  { id:"appetite",     label:"Appetite Loss",   icon:"🍽️" },
-  { id:"dizziness",    label:"Dizziness",       icon:"💫" },
-  { id:"pain",         label:"Pain",            icon:"😣" },
-  { id:"constipation", label:"Constipation",    icon:"😔" },
-  { id:"diarrhea",     label:"Diarrhea",        icon:"🚽" },
-  { id:"sleep",        label:"Sleep Difficulty",icon:"🌙" },
-  { id:"mouth-sores",  label:"Mouth Sores",     icon:"🫦" },
-  { id:"numbness",     label:"Numbness / Tingling", icon:"🖐️" },
+  { id:"nausea",       label:"Nausea"            },
+  { id:"fatigue",      label:"Fatigue"           },
+  { id:"appetite",     label:"Appetite Loss"     },
+  { id:"dizziness",    label:"Dizziness"         },
+  { id:"pain",         label:"Pain"              },
+  { id:"constipation", label:"Constipation"      },
+  { id:"diarrhea",     label:"Diarrhea"          },
+  { id:"sleep",        label:"Sleep Difficulty"  },
+  { id:"mouth-sores",  label:"Mouth Sores"       },
+  { id:"numbness",     label:"Numbness / Tingling"},
 ];
 
 const AFFIRMATIONS = [
@@ -1105,6 +1234,8 @@ function init() {
   renderSymptomLog();
   renderNotes();
   renderReflectionCard();
+  renderMessages();
+  setupLongPress();
   renderSyncStatus();
   setupOnlineHandlers();
   renderTodayScheduleBanner();
@@ -1163,10 +1294,11 @@ function taskHTML(task) {
   const isDone = status === 'done';
   const isSkipped = status === 'skip';
   const noteText = st?.notes ? `<div class="task-note-text">${escapeHtml(st.notes)}</div>` : '';
+  const iconSvg = TASK_ICONS[task.iconKey] || TASK_ICONS.meal;
 
   return `
     <div class="task-item ${isDone?'done':''} ${isSkipped?'skipped':''}" id="task-${task.id}">
-      <div class="task-icon">${task.icon}</div>
+      <div class="task-icon">${iconSvg}</div>
       <div class="task-body">
         <div class="task-name">${task.label}</div>
         <div class="task-time">${time ? (isDone?'✓ ':'⏭ ')+time : 'Not done yet'}</div>
@@ -1192,7 +1324,7 @@ function customTaskHTML(task, group) {
 
   return `
     <div class="task-item custom ${isDone?'done':''} ${isSkipped?'skipped':''}" id="ctask-${task.id}">
-      <div class="task-icon">${task.icon}</div>
+      <div class="task-icon">${TASK_ICONS.snack}</div>
       <div class="task-body">
         <div class="task-name">${escapeHtml(task.label)}</div>
         <div class="task-time">${time ? (isDone?'✓ ':'⏭ ')+time : 'Not done yet'}</div>
@@ -1215,7 +1347,12 @@ function initMarkTask(taskId, status) {
   pendingTaskId = taskId;
   pendingTaskStatus = status;
 
-  if (status === 'done' && task?.isMeal) {
+  if (status === 'done' && task?.isMed) {
+    // Ask for optional medication note
+    document.getElementById('modal-med-note-title').textContent = `${task.label} 💊`;
+    document.getElementById('med-note-input').value = '';
+    openModal('modal-med-note');
+  } else if (status === 'done' && task?.isMeal) {
     // Ask what was eaten
     document.getElementById('modal-food-note-title').textContent = `What did ${CONFIG.callName} eat?`;
     document.getElementById('food-note-input').value = '';
@@ -1227,6 +1364,13 @@ function initMarkTask(taskId, status) {
   } else {
     commitMarkTask(taskId, status, '');
   }
+}
+
+function confirmMedNote() {
+  const notes = document.getElementById('med-note-input').value.trim();
+  closeModal('modal-med-note');
+  if (pendingTaskId) commitMarkTask(pendingTaskId, 'done', notes);
+  pendingTaskId = null; pendingTaskStatus = null;
 }
 
 function confirmFoodNote() {
@@ -1385,8 +1529,15 @@ function updateDashStats() {
 
   const moodEmoji = { Good:'🙂', Okay:'😐', Difficult:'☹️' };
   const moodVal   = STATE.reflection?.mood || null;
-  document.getElementById('dash-mood').textContent      = moodVal || '—';
-  document.getElementById('dash-mood-icon').textContent = moodVal ? moodEmoji[moodVal] : '😊';
+  document.getElementById('dash-mood').textContent = moodVal || '—';
+  const moodIconEl = document.getElementById('dash-mood-icon');
+  if (moodVal) {
+    moodIconEl.innerHTML = `<span style="font-size:20px">${moodEmoji[moodVal]}</span>`;
+    moodIconEl.style.background = moodVal==='Good' ? 'rgba(122,158,126,0.15)' : moodVal==='Okay' ? 'rgba(201,160,76,0.15)' : 'rgba(201,122,122,0.15)';
+  } else {
+    moodIconEl.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--lavender)" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>`;
+    moodIconEl.style.background = 'rgba(160,140,200,0.12)';
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1491,7 +1642,7 @@ function renderSymptomGrid() {
   grid.innerHTML = SYMPTOMS.map(s => `
     <button class="symptom-chip ${selectedSymptom === s.id ? 'selected' : ''}"
             onclick="selectSymptom('${s.id}')">
-      <span class="symptom-chip-icon">${s.icon}</span>
+      <span class="symptom-chip-icon" style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:0.7">${SYMPTOM_ICONS[s.id] || ''}</span>
       <span class="symptom-chip-text">${s.label}</span>
     </button>`).join('');
 
@@ -1588,12 +1739,12 @@ function renderSymptomLog() {
   const severityLabel = {1:'Mild',2:'Low',3:'Moderate',4:'High',5:'Severe'};
   el.innerHTML = [...STATE.symptoms].reverse().map((s, ri) => {
     const i = STATE.symptoms.length - 1 - ri;
-    const sym = SYMPTOMS.find(x => x.id === s.symptom);
-    const icon  = sym?.icon || '•';
+    const sym   = SYMPTOMS.find(x => x.id === s.symptom);
+    const iconHtml = sym ? `<span style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:0.6">${SYMPTOM_ICONS[s.symptom] || ''}</span>` : `<span style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:14px">•</span>`;
     const label = sym?.label || s.symptom;
     return `
       <div class="symptom-entry">
-        <span style="font-size:20px">${icon}</span>
+        ${iconHtml}
         <div style="flex:1">
           <div style="font-size:14px;font-weight:500">${escapeHtml(label)}${s.custom ? ' <span style="font-size:10px;background:var(--blush-light);color:var(--rose);padding:1px 6px;border-radius:10px">custom</span>' : ''}</div>
           ${s.notes ? `<div style="font-size:12px;color:var(--ink-muted);margin-top:2px">${escapeHtml(s.notes)}</div>` : ''}
@@ -1689,13 +1840,13 @@ function renderCalEvents() {
 
   const typeIcon = { chemo:'💉', checkup:'🩺', other:'📅' };
   listEl.innerHTML = filtered.map(ev => `
-    <div class="event-card ${ev.type}" id="event-${ev.id}">
+    <div class="event-card ${ev.type}" id="event-${ev.id}" onclick="openEventDetail('${ev.id}')" style="cursor:pointer">
       <div class="event-icon">${typeIcon[ev.type] || '📅'}</div>
       <div class="event-body">
         <div class="event-title">${escapeHtml(ev.title)}</div>
-        <div class="event-meta">${ev.time ? ev.time + ' · ' : ''}${ev.type.charAt(0).toUpperCase()+ev.type.slice(1)}${ev.notes ? ' · ' + escapeHtml(ev.notes) : ''}</div>
+        <div class="event-meta">${ev.time ? ev.time + ' · ' : ''}${ev.type.charAt(0).toUpperCase()+ev.type.slice(1)}${ev.notes ? ' · ' + escapeHtml(ev.notes) : ''}${ev.photos?.length ? ` · 📎 ${ev.photos.length} photo${ev.photos.length>1?'s':''}` : ''}</div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0">
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0" onclick="event.stopPropagation()">
         <button class="event-delete" onclick="openEditEvent('${ev.id}')" title="Edit event" style="color:var(--sage-deep);font-size:13px;font-weight:500;padding:3px 8px;background:var(--sage-pale);border-radius:6px;border:none;cursor:pointer">✏️ Edit</button>
         <button class="event-delete" onclick="deleteEvent('${ev.id}')" title="Delete event">✕</button>
       </div>
@@ -2125,37 +2276,17 @@ function escapeHtml(str) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   SERVICE WORKER — auto-update on new deploy
+   SERVICE WORKER — iOS-compatible auto-update
+   index.html is fetched network-first so every app open
+   gets the latest version when online.
 ═══════════════════════════════════════════════════════════ */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').then(reg => {
       console.log('[App] SW registered:', reg.scope);
-
-      // Check for updates every time the app is opened
+      // Force check for new SW on every app open
       reg.update();
-
-      // When a new SW is waiting, activate it and reload
-      reg.addEventListener('updatefound', () => {
-        const newWorker = reg.installing;
-        newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            // New version ready — tell SW to skip waiting, then reload
-            newWorker.postMessage('skipWaiting');
-          }
-        });
-      });
-
     }).catch(err => console.warn('[App] SW failed:', err));
-
-    // When SW takes control (after skipWaiting), reload the page silently
-    let refreshing = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (!refreshing) {
-        refreshing = true;
-        window.location.reload();
-      }
-    });
   });
 }
 
@@ -2271,6 +2402,153 @@ function openDashDetail(type) {
 }
 
 /* ═══════════════════════════════════════════════════════════
+   JOURNAL TABS
+═══════════════════════════════════════════════════════════ */
+function switchJournalTab(tab) {
+  document.getElementById('jtab-reflection').classList.toggle('active', tab === 'reflection');
+  document.getElementById('jtab-notes').classList.toggle('active', tab === 'notes');
+  document.getElementById('jpane-reflection').classList.toggle('active', tab === 'reflection');
+  document.getElementById('jpane-notes').classList.toggle('active', tab === 'notes');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FAMILY MESSAGES
+═══════════════════════════════════════════════════════════ */
+const AUTHORS = ['Sisley', 'Emmanuel', 'Benett', 'Guess'];
+let selectedAuthor = null;
+
+function loadMessages() {
+  return JSON.parse(localStorage.getItem('cc_messages') || '{}');
+  // Structure: { Sisley: "msg", Emmanuel: "msg", ... }
+}
+function saveMessages(msgs) {
+  localStorage.setItem('cc_messages', JSON.stringify(msgs));
+}
+
+function renderMessages() {
+  const msgs    = loadMessages();
+  const heroEl  = document.getElementById('hero-messages');
+  const hasAny  = AUTHORS.some(a => msgs[a]);
+
+  if (!hasAny) {
+    heroEl.style.display = 'none';
+    return;
+  }
+
+  heroEl.style.display = 'block';
+  heroEl.innerHTML = AUTHORS.filter(a => msgs[a]).map(a => `
+    <div style="margin-bottom:6px;last-child:margin-bottom:0">
+      <span style="font-size:12px;opacity:0.9;font-family:var(--font-serif);font-style:italic;line-height:1.5;color:white">"${escapeHtml(msgs[a])}"</span>
+      <span style="font-size:10px;opacity:0.7;color:white;margin-left:4px">— ${a}</span>
+    </div>`).join('');
+}
+
+function setupLongPress() {
+  const hero = document.getElementById('hero-card');
+  let pressTimer = null;
+
+  hero.addEventListener('touchstart', () => {
+    pressTimer = setTimeout(() => { openMessageModal(); }, 800);
+  }, { passive: true });
+
+  hero.addEventListener('touchend', () => {
+    if (pressTimer) clearTimeout(pressTimer);
+  });
+  hero.addEventListener('touchmove', () => {
+    if (pressTimer) clearTimeout(pressTimer);
+  });
+}
+
+function openMessageModal(prefillAuthor) {
+  selectedAuthor = prefillAuthor || null;
+  const msgs = loadMessages();
+  // Reset author buttons
+  AUTHORS.forEach(a => {
+    const btn = document.getElementById(`author-${a}`);
+    if (btn) btn.className = `event-type-btn ${selectedAuthor === a ? 'active-checkup' : ''}`;
+  });
+  document.getElementById('message-input').value = prefillAuthor ? (msgs[prefillAuthor] || '') : '';
+  if (prefillAuthor) selectAuthor(prefillAuthor);
+  openModal('modal-message');
+}
+
+function selectAuthor(author) {
+  selectedAuthor = author;
+  AUTHORS.forEach(a => {
+    const btn = document.getElementById(`author-${a}`);
+    if (btn) btn.className = `event-type-btn ${a === author ? 'active-checkup' : ''}`;
+  });
+}
+
+function confirmMessage() {
+  if (!selectedAuthor) { showToast('Pick who this is from'); return; }
+  const text = document.getElementById('message-input').value.trim();
+  if (!text) { showToast('Write a message first'); return; }
+  const msgs = loadMessages();
+  msgs[selectedAuthor] = text;
+  saveMessages(msgs);
+  closeModal('modal-message');
+  renderMessages();
+  showToast(`Message from ${selectedAuthor} saved 💚`);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EVENT DETAIL
+═══════════════════════════════════════════════════════════ */
+function openEventDetail(eventId) {
+  const events = loadEvents();
+  const ev = events.find(e => e.id === eventId);
+  if (!ev) return;
+
+  const typeIcon  = { chemo:'💉', checkup:'🩺', other:'📅' };
+  const typeLabel = { chemo:'Chemo Session', checkup:'Doctor Visit', other:'Appointment' };
+  const typeColor = { chemo:'var(--rose)', checkup:'var(--sky-deep)', other:'var(--gold)' };
+
+  let photosHtml = '';
+  if (ev.photos?.length) {
+    photosHtml = `
+      <div style="margin-top:14px">
+        <div style="font-size:11px;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px">Attached Photos</div>
+        <div class="event-detail-photo-grid">
+          ${ev.photos.map(url => `
+            <a href="${url}" target="_blank">
+              <img class="event-detail-photo" src="${url}" alt="Medical photo" />
+            </a>`).join('')}
+        </div>
+      </div>`;
+  } else {
+    photosHtml = `<div style="margin-top:12px;font-size:12px;color:var(--ink-muted);font-style:italic">No photos attached yet — tap Edit to add medical reports.</div>`;
+  }
+
+  document.getElementById('event-detail-content').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div style="width:44px;height:44px;border-radius:12px;background:rgba(0,0,0,0.05);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">${typeIcon[ev.type]}</div>
+      <div>
+        <div style="font-family:var(--font-serif);font-size:17px;font-weight:600;color:var(--ink)">${escapeHtml(ev.title)}</div>
+        <div style="font-size:12px;color:${typeColor[ev.type]};font-weight:500;margin-top:2px">${typeLabel[ev.type]}</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(122,158,126,0.1)">
+        <span style="font-size:13px;color:var(--ink-muted)">Date</span>
+        <span style="font-size:13px;font-weight:500">${new Date(ev.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</span>
+      </div>
+      ${ev.time ? `<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(122,158,126,0.1)">
+        <span style="font-size:13px;color:var(--ink-muted)">Time</span>
+        <span style="font-size:13px;font-weight:500">${ev.time}</span>
+      </div>` : ''}
+      ${ev.notes ? `<div style="padding:10px 0;border-bottom:1px solid rgba(122,158,126,0.1)">
+        <div style="font-size:13px;color:var(--ink-muted);margin-bottom:4px">Notes</div>
+        <div style="font-size:13px;color:var(--ink)">${escapeHtml(ev.notes)}</div>
+      </div>` : ''}
+    </div>
+    ${photosHtml}
+    <button onclick="closeModal('modal-event-detail');openEditEvent('${ev.id}')" style="width:100%;height:40px;margin-top:16px;border-radius:var(--radius-md);border:1.5px solid rgba(122,158,126,0.3);background:var(--sage-pale);color:var(--sage-deep);font-family:var(--font-sans);font-size:13px;font-weight:500;cursor:pointer">✏️ Edit this event</button>
+  `;
+  openModal('modal-event-detail');
+}
+
+/* ═══════════════════════════════════════════════════════════
    READ ONLY MODE
 ═══════════════════════════════════════════════════════════ */
 let isReadOnly = false;
@@ -2278,7 +2556,19 @@ function toggleReadOnly() {
   isReadOnly = !isReadOnly;
   document.body.classList.toggle('readonly', isReadOnly);
   document.getElementById('readonly-banner').classList.toggle('visible', isReadOnly);
-  document.getElementById('readonly-btn').textContent = isReadOnly ? '🔒' : '🔓';
+
+  const btn = document.getElementById('readonly-btn');
+  if (isReadOnly) {
+    btn.style.background    = '#c9a84c';
+    btn.style.borderColor   = '#c9a84c';
+    btn.style.color         = 'white';
+    btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> Viewing`;
+  } else {
+    btn.style.background    = 'rgba(122,158,126,0.1)';
+    btn.style.borderColor   = 'rgba(122,158,126,0.25)';
+    btn.style.color         = 'var(--ink-soft)';
+    btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> View Only`;
+  }
   showToast(isReadOnly ? '🔒 View only mode on' : '🔓 Edit mode restored');
 }
 
@@ -2548,25 +2838,7 @@ function removeExistingPhoto(eventId, photoIndex) {
   showToast('Photo removed');
 }
 
-/* Show photos on event cards */
-const _renderCalEvents = renderCalEvents;
-renderCalEvents = function() {
-  _renderCalEvents();
-  // Append photo thumbnails to event cards that have photos
-  const events = loadEvents();
-  const filtered = events.filter(e => e.date === calSelectedDate && e.photos?.length);
-  filtered.forEach(ev => {
-    const card = document.getElementById(`event-${ev.id}`);
-    if (!card) return;
-    const thumbs = ev.photos.map(url =>
-      `<a href="${url}" target="_blank"><img src="${url}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid rgba(0,0,0,0.1)" /></a>`
-    ).join('');
-    const row = document.createElement('div');
-    row.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;padding-left:34px';
-    row.innerHTML = thumbs;
-    card.querySelector('.event-body').appendChild(row);
-  });
-};
+/* Photos are shown inside openEventDetail modal instead */
 
 /* Reset photos when opening add event modal */
 const _openAddEvent = openAddEvent;
