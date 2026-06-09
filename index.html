@@ -588,23 +588,23 @@
       <div id="today-schedule-banner" style="display:none"></div>
 
       <div class="stats-grid">
-        <div class="stat-card">
+        <div class="stat-card" onclick="openDashDetail('meds')" style="cursor:pointer">
           <div class="stat-icon">💊</div>
           <div class="stat-value" id="dash-meds">—</div>
           <div class="stat-label">Medications</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" onclick="openDashDetail('meals')" style="cursor:pointer">
           <div class="stat-icon">🍽️</div>
           <div class="stat-value" id="dash-meals">—</div>
           <div class="stat-label">Meals</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" onclick="openDashDetail('water')" style="cursor:pointer">
           <div class="stat-icon">💧</div>
           <div class="stat-value" id="dash-water">—</div>
           <div class="stat-label">Hydration</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon">😊</div>
+        <div class="stat-card" onclick="openDashDetail('mood')" style="cursor:pointer">
+          <div class="stat-icon" id="dash-mood-icon">😊</div>
           <div class="stat-value" id="dash-mood">—</div>
           <div class="stat-label">Today's Mood</div>
         </div>
@@ -774,6 +774,16 @@
       Report
     </button>
   </nav>
+</div>
+
+<!-- Dashboard detail modal -->
+<div class="modal-backdrop" id="modal-dash-detail">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="dash-detail-title"></div>
+    <div id="dash-detail-content" style="margin-top:12px"></div>
+    <button class="btn-secondary" onclick="closeModal('modal-dash-detail')" style="margin-top:16px">Close</button>
+  </div>
 </div>
 
 <!-- CONFIRM DIALOG -->
@@ -1359,7 +1369,10 @@ function updateDashStats() {
   const glasses    = Math.floor(netWater / 250);
   document.getElementById('dash-water').textContent = `${glasses}/${CONFIG.waterGoalGlasses}`;
 
-  document.getElementById('dash-mood').textContent = STATE.reflection?.mood || '—';
+  const moodEmoji = { Good:'🙂', Okay:'😐', Difficult:'☹️' };
+  const moodVal   = STATE.reflection?.mood || null;
+  document.getElementById('dash-mood').textContent      = moodVal || '—';
+  document.getElementById('dash-mood-icon').textContent = moodVal ? moodEmoji[moodVal] : '😊';
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -2083,6 +2096,116 @@ if ('serviceWorker' in navigator) {
       }
     });
   });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DASHBOARD DETAIL POPUPS
+═══════════════════════════════════════════════════════════ */
+function openDashDetail(type) {
+  const titleEl   = document.getElementById('dash-detail-title');
+  const contentEl = document.getElementById('dash-detail-content');
+  let html = '';
+
+  if (type === 'meds') {
+    titleEl.textContent = '💊 Medications Today';
+    const meds = TASKS.filter(t => t.isMed);
+    html = meds.map(t => {
+      const st     = STATE.tasks[t.id];
+      const status = st?.status || 'pending';
+      const time   = st?.timestamp ? new Date(st.timestamp).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : null;
+      const badge  = status === 'done'
+        ? `<span style="background:var(--sage-pale);color:var(--sage-deep);padding:2px 10px;border-radius:20px;font-size:11px;font-weight:500">✓ Taken${time ? ' · '+time : ''}</span>`
+        : status === 'skip'
+        ? `<span style="background:var(--blush-light);color:var(--rose);padding:2px 10px;border-radius:20px;font-size:11px;font-weight:500">Skipped${st?.notes && st.notes !== 'Skipped' ? ' · '+escapeHtml(st.notes) : ''}</span>`
+        : `<span style="background:rgba(122,158,126,0.1);color:var(--ink-muted);padding:2px 10px;border-radius:20px;font-size:11px;font-weight:500">Pending</span>`;
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(122,158,126,0.1)">
+        <span style="font-size:14px;font-weight:500">${t.icon} ${t.label}</span>${badge}</div>`;
+    }).join('');
+  }
+
+  else if (type === 'meals') {
+    titleEl.textContent = '🍽️ Meals & Food Today';
+    // Base meals
+    const meals = TASKS.filter(t => t.isMeal);
+    html = meals.map(t => {
+      const st     = STATE.tasks[t.id];
+      const status = st?.status || 'pending';
+      const time   = st?.timestamp ? new Date(st.timestamp).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : null;
+      const note   = st?.notes ? `<div style="font-size:12px;color:var(--ink-muted);margin-top:3px;font-style:italic">${escapeHtml(st.notes)}</div>` : '';
+      const badge  = status === 'done'
+        ? `<span style="background:var(--sage-pale);color:var(--sage-deep);padding:2px 10px;border-radius:20px;font-size:11px;font-weight:500">✓ Eaten${time ? ' · '+time : ''}</span>`
+        : status === 'skip'
+        ? `<span style="background:var(--blush-light);color:var(--rose);padding:2px 10px;border-radius:20px;font-size:11px;font-weight:500">Skipped</span>`
+        : `<span style="background:rgba(122,158,126,0.1);color:var(--ink-muted);padding:2px 10px;border-radius:20px;font-size:11px;font-weight:500">Pending</span>`;
+      return `<div style="padding:12px 0;border-bottom:1px solid rgba(122,158,126,0.1)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <span style="font-size:14px;font-weight:500">${t.icon} ${t.label}</span>${badge}
+        </div>${note}</div>`;
+    }).join('');
+
+    // Custom snacks
+    const allCustom = Object.entries(STATE.customTasks || {}).flatMap(([group, items]) =>
+      items.map(i => ({ ...i, group }))
+    ).filter(i => i.status === 'done');
+
+    if (allCustom.length) {
+      html += `<div style="margin-top:12px;font-size:11px;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px">Extra Snacks & Food</div>`;
+      html += allCustom.map(i => {
+        const time = i.timestamp ? new Date(i.timestamp).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : '';
+        return `<div style="padding:10px 0;border-bottom:1px solid rgba(122,158,126,0.1)">
+          <div style="font-size:14px;font-weight:500">🍎 ${escapeHtml(i.label)}</div>
+          ${time ? `<div style="font-size:11px;color:var(--ink-muted);margin-top:2px">${i.group.charAt(0).toUpperCase()+i.group.slice(1)} · ${time}</div>` : ''}
+        </div>`;
+      }).join('');
+    }
+
+    if (!html) html = '<div class="empty-state"><div class="empty-icon">🍽️</div><p>No meals logged yet today.</p></div>';
+  }
+
+  else if (type === 'water') {
+    titleEl.textContent = '💧 Hydration Today';
+    const total = netWaterTotal();
+    const pct   = Math.min(100, Math.round((total / CONFIG.waterGoalMl) * 100));
+    html = `
+      <div style="text-align:center;padding:16px 0;border-bottom:1px solid rgba(122,158,126,0.1);margin-bottom:12px">
+        <div style="font-family:var(--font-serif);font-size:36px;font-weight:600;color:var(--sky-deep)">${total.toLocaleString()} ml</div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-top:4px">${pct}% of daily goal · ${Math.floor(total/250)} glasses</div>
+        <div style="height:6px;background:rgba(122,176,201,0.2);border-radius:3px;margin-top:12px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:var(--sky);border-radius:3px;transition:width 0.5s"></div>
+        </div>
+      </div>`;
+    if (STATE.water.length) {
+      html += STATE.water.map(w => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(122,158,126,0.08)">
+          <span style="font-size:14px">${w.deducted ? '➖' : '💧'} ${w.deducted ? '−' : '+'} ${w.amount_ml} ml${w.note ? ` <em style="font-size:12px;color:var(--ink-muted)">· ${escapeHtml(w.note)}</em>` : ''}</span>
+          <span style="font-size:11px;color:var(--ink-muted)">${new Date(w.timestamp).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</span>
+        </div>`).join('');
+    } else {
+      html += '<div class="empty-state"><div class="empty-icon">💧</div><p>No water logged yet today.</p></div>';
+    }
+  }
+
+  else if (type === 'mood') {
+    titleEl.textContent = '😊 Today\'s Reflection';
+    if (STATE.reflection) {
+      const moodEmoji = { Good:'🙂', Okay:'😐', Difficult:'☹️' };
+      const moodColor = { Good:'var(--sage-pale)', Okay:'#fff8e6', Difficult:'var(--blush-light)' };
+      const moodText  = { Good:'var(--sage-deep)', Okay:'#7a5c0a', Difficult:'var(--rose)' };
+      const mood = STATE.reflection.mood;
+      html = `
+        <div style="text-align:center;padding:20px;background:${moodColor[mood]};border-radius:var(--radius-md);margin-bottom:16px">
+          <div style="font-size:48px;margin-bottom:8px">${moodEmoji[mood]}</div>
+          <div style="font-size:18px;font-weight:600;color:${moodText[mood]};font-family:var(--font-serif)">${mood}</div>
+          <div style="font-size:11px;color:var(--ink-muted);margin-top:4px">${new Date(STATE.reflection.timestamp).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div>
+        </div>
+        ${STATE.reflection.notes ? `<div style="font-size:14px;line-height:1.6;color:var(--ink-soft);font-style:italic;padding:12px;background:var(--cream);border-radius:var(--radius-sm)">"${escapeHtml(STATE.reflection.notes)}"</div>` : ''}`;
+    } else {
+      html = '<div class="empty-state"><div class="empty-icon">🌿</div><p>No reflection logged yet today.<br>Go to the Journal tab to add one.</p></div>';
+    }
+  }
+
+  contentEl.innerHTML = html;
+  openModal('modal-dash-detail');
 }
 
 /* ═══════════════════════════════════════════════════════════
