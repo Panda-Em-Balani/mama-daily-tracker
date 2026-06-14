@@ -241,16 +241,6 @@
     .water-amount { font-family: var(--font-serif); font-size: 42px; font-weight: 600; letter-spacing: -1px; margin: 8px 0 4px; }
     .water-label { font-size: 13px; opacity: 0.85; }
     .water-goal { font-size: 12px; opacity: 0.7; margin-top: 2px; }
-    .glasses-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 16px 0; }
-    .glass-btn {
-      aspect-ratio: 1; border-radius: var(--radius-sm);
-      border: 2px solid rgba(122,176,201,0.3); background: var(--warm-white);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 4px; cursor: pointer; transition: all 0.2s;
-      -webkit-tap-highlight-color: transparent; font-size: 24px;
-    }
-    .glass-btn.filled { background: rgba(122,176,201,0.15); border-color: #7ab0c9; }
-    .glass-btn span { font-size: 10px; color: var(--ink-muted); font-weight: 500; }
     .water-controls { display: flex; gap: 8px; flex-wrap: wrap; }
     .water-btn {
       flex: 1; min-width: 70px; height: 44px; border-radius: var(--radius-sm);
@@ -583,21 +573,22 @@
     /* ─── REPORT TAB ENHANCEMENTS ──────────────────────────── */
     .report-date-range-card {
       background: var(--warm-white); border-radius: var(--radius-md);
-      padding: 14px 16px; box-shadow: var(--shadow-sm);
-      margin-bottom: 14px;
+      padding: 12px 14px; box-shadow: var(--shadow-sm);
+      margin-bottom: 12px;
     }
     .report-range-row {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;
     }
-    .report-range-field { display: flex; flex-direction: column; gap: 4px; }
-    .report-range-label { font-size: 11px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.6px; }
+    .report-range-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .report-range-label { font-size: 10px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.6px; }
+    .report-range-field input[type="date"] { font-size: 12px; padding: 8px 10px; min-width: 0; width: 100%; }
     .report-attach-toggle {
       display: flex; align-items: center; gap: 8px; cursor: pointer;
-      font-size: 13px; color: var(--ink-soft); font-weight: 400;
+      font-size: 12px; color: var(--ink-soft); font-weight: 400;
       padding: 4px 0;
     }
     .report-attach-toggle input[type="checkbox"] {
-      width: 16px; height: 16px; accent-color: var(--sage-deep);
+      width: 15px; height: 15px; accent-color: var(--sage-deep);
       cursor: pointer; flex-shrink: 0; margin: 0;
     }
 
@@ -607,59 +598,61 @@
     .report-block { background: transparent; box-shadow: none; padding: 0; }
     .rpt-day-card {
       background: var(--warm-white); border-radius: var(--radius-md);
-      box-shadow: var(--shadow-sm); margin-bottom: 16px; overflow: hidden;
+      box-shadow: var(--shadow-sm); margin-bottom: 14px; overflow: hidden;
     }
     .rpt-day-header {
       background: linear-gradient(135deg, var(--sage-pale) 0%, #f0f8f0 100%);
-      padding: 12px 16px; border-bottom: 1px solid rgba(122,158,126,0.15);
-      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; border-bottom: 1px solid rgba(122,158,126,0.15);
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
     }
-    .rpt-day-title { font-family: var(--font-serif); font-size: 14px; font-weight: 600; color: var(--sage-deep); }
-    .rpt-empty-day { padding: 16px; font-size: 13px; color: var(--ink-muted); font-style: italic; }
+    .rpt-day-title { font-family: var(--font-serif); font-size: 13px; font-weight: 600; color: var(--sage-deep); line-height: 1.3; }
+    .rpt-empty-day { padding: 14px; font-size: 13px; color: var(--ink-muted); font-style: italic; }
 
-    /* Vitals strip */
+    /* Vitals strip — 2×2 on very narrow screens via wrap */
     .rpt-vitals-row {
-      display: flex; align-items: stretch; border-bottom: 1px solid rgba(122,158,126,0.1);
+      display: flex; align-items: stretch; flex-wrap: wrap;
+      border-bottom: 1px solid rgba(122,158,126,0.1);
     }
-    .rpt-vital { flex: 1; padding: 12px 8px; text-align: center; }
-    .rpt-vital-val { font-family: var(--font-serif); font-size: 20px; font-weight: 600; color: var(--ink); line-height: 1.1; }
-    .rpt-vital-unit { font-size: 11px; font-weight: 400; color: var(--ink-muted); }
-    .rpt-vital-extra { font-size: 11px; font-weight: 500; color: var(--sage-deep); background: var(--sage-pale); border-radius: 8px; padding: 1px 5px; margin-left: 2px; }
-    .rpt-vital-label { font-size: 10px; color: var(--ink-muted); margin-top: 3px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.4px; }
-    .rpt-vital-divider { width: 1px; background: rgba(122,158,126,0.12); flex-shrink: 0; }
+    .rpt-vital { flex: 1 1 40%; min-width: 0; padding: 10px 6px; text-align: center; }
+    .rpt-vital-val { font-family: var(--font-serif); font-size: 18px; font-weight: 600; color: var(--ink); line-height: 1.1; }
+    .rpt-vital-unit { font-size: 10px; font-weight: 400; color: var(--ink-muted); }
+    .rpt-vital-extra { font-size: 10px; font-weight: 500; color: var(--sage-deep); background: var(--sage-pale); border-radius: 8px; padding: 1px 4px; margin-left: 2px; }
+    .rpt-vital-label { font-size: 9px; color: var(--ink-muted); margin-top: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+    .rpt-vital-divider { width: 1px; background: rgba(122,158,126,0.12); flex-shrink: 0; align-self: stretch; }
 
     /* Section label */
     .rpt-section-label {
-      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.9px;
-      color: var(--ink-muted); padding: 10px 16px 4px; background: var(--cream);
+      font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.9px;
+      color: var(--ink-muted); padding: 8px 14px 3px; background: var(--cream);
       border-top: 1px solid rgba(122,158,126,0.08);
     }
 
-    /* Table */
-    .rpt-table { width: 100%; border-collapse: collapse; }
+    /* Table — no overflow, squeeze on mobile */
+    .rpt-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
     .rpt-th {
-      font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
-      color: var(--ink-muted); padding: 8px 16px; text-align: left;
+      font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+      color: var(--ink-muted); padding: 7px 14px; text-align: left;
       background: rgba(122,158,126,0.04); border-bottom: 1px solid rgba(122,158,126,0.12);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .rpt-th-center { text-align: center; }
     .rpt-td {
-      font-size: 13px; color: var(--ink-soft); padding: 9px 16px;
+      font-size: 12px; color: var(--ink-soft); padding: 8px 14px;
       border-bottom: 1px solid rgba(122,158,126,0.07); vertical-align: middle;
+      overflow: hidden; text-overflow: ellipsis;
     }
-    .rpt-td:last-child { border-bottom: none; }
     .rpt-table tr:last-child .rpt-td { border-bottom: none; }
-    .rpt-td-label { font-weight: 500; color: var(--ink); width: 45%; }
+    .rpt-td-label { font-weight: 500; color: var(--ink); width: 42%; }
     .rpt-td-right { text-align: right; }
     .rpt-td-center { text-align: center; }
     .rpt-muted { color: var(--ink-muted) !important; font-style: italic; }
-    .rpt-meal-note { font-size: 11px; color: var(--sage-deep); font-weight: 400; margin-top: 2px; font-style: italic; }
-    .rpt-note-cell { color: var(--ink-soft); font-style: italic; padding: 10px 16px; }
+    .rpt-meal-note { font-size: 10px; color: var(--sage-deep); font-weight: 400; margin-top: 2px; font-style: italic; }
+    .rpt-note-cell { color: var(--ink-soft); font-style: italic; padding: 9px 14px; }
 
-    /* Status badges */
+    /* Status badges — smaller on mobile */
     .rpt-status {
-      display: inline-block; font-size: 11px; font-weight: 600;
-      padding: 2px 9px; border-radius: 20px; white-space: nowrap;
+      display: inline-block; font-size: 10px; font-weight: 600;
+      padding: 2px 7px; border-radius: 20px; white-space: nowrap;
     }
     .rpt-status-done    { background: var(--sage-pale);   color: var(--sage-deep); }
     .rpt-status-skip    { background: var(--blush-light);  color: var(--rose); }
@@ -668,24 +661,24 @@
     .rpt-status-event   { background: rgba(160,140,200,0.15); color: var(--lavender); }
 
     /* Severity badge */
-    .rpt-sev-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 20px; }
+    .rpt-sev-badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px; }
 
     /* Symptom bar */
-    .rpt-bar-wrap { height: 6px; background: rgba(122,158,126,0.12); border-radius: 3px; min-width: 60px; overflow: hidden; }
+    .rpt-bar-wrap { height: 5px; background: rgba(122,158,126,0.12); border-radius: 3px; min-width: 40px; overflow: hidden; }
     .rpt-bar-fill { height: 100%; background: var(--sage); border-radius: 3px; transition: width 0.4s ease; }
 
     /* Photo badge */
     .rpt-photo-badge { font-size: 10px; color: var(--sky-deep); margin-left: 4px; }
-    .rpt-sym-dot { display: inline-block; background: var(--blush-light); color: var(--rose); font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 20px; margin-left: 3px; }
+    .rpt-sym-dot { display: inline-block; background: var(--blush-light); color: var(--rose); font-size: 9px; font-weight: 700; padding: 1px 4px; border-radius: 20px; margin-left: 2px; }
 
     /* Reflection block */
     .rpt-reflection-block {
-      margin: 0; padding: 12px 16px 14px;
+      margin: 0; padding: 10px 14px 13px;
       background: linear-gradient(135deg, rgba(160,140,200,0.06) 0%, rgba(122,158,126,0.04) 100%);
       border-top: 1px solid rgba(122,158,126,0.08);
     }
-    .rpt-reflection-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.9px; color: var(--lavender); display: block; margin-bottom: 6px; }
-    .rpt-reflection-text { font-family: var(--font-serif); font-size: 13px; color: var(--ink-soft); font-style: italic; line-height: 1.6; margin: 0; }
+    .rpt-reflection-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.9px; color: var(--lavender); display: block; margin-bottom: 5px; }
+    .rpt-reflection-text { font-family: var(--font-serif); font-size: 12px; color: var(--ink-soft); font-style: italic; line-height: 1.6; margin: 0; }
 
     /* ─── NOTIFICATION BANNER ───────────────────────────────── */
     #notif-banner {
@@ -827,8 +820,6 @@
         <div class="water-amount" id="water-amount">0 ml</div>
         <div class="water-goal" id="water-goal-label">of 2,000 ml goal</div>
       </div>
-
-      <div class="glasses-grid" id="glasses-grid"></div>
 
       <div class="water-controls">
         <button class="water-btn" onclick="addWater(250)">+ 250 ml</button>
@@ -1974,13 +1965,6 @@ function renderWater() {
   const total = netWaterTotal();
   document.getElementById('water-amount').textContent = total.toLocaleString() + ' ml';
 
-  const grid   = document.getElementById('glasses-grid');
-  const filled = Math.min(Math.floor(total / 250), CONFIG.waterGoalGlasses);
-  grid.innerHTML = Array.from({ length: CONFIG.waterGoalGlasses }, (_, i) => `
-    <button class="glass-btn ${i < filled ? 'filled' : ''}" onclick="addWater(250)">
-      💧<span>${(i+1)*250}ml</span>
-    </button>`).join('');
-
   const logEl = document.getElementById('water-log-list');
   if (!STATE.water.length) {
     logEl.innerHTML = '<div class="empty-state"><div class="empty-icon">💧</div><p>No water logged yet today.</p></div>';
@@ -2907,152 +2891,302 @@ async function exportPDF(type) {
 
   let fromKey, toKey;
   if (type === 'daily') {
-    fromKey = document.getElementById('daily-from')?.value   || todayKey();
-    toKey   = document.getElementById('daily-to')?.value     || todayKey();
+    fromKey = document.getElementById('daily-from')?.value  || todayKey();
+    toKey   = document.getElementById('daily-to')?.value    || todayKey();
   } else {
-    fromKey = document.getElementById('weekly-from')?.value  || (() => { const d=new Date(); d.setDate(d.getDate()-6); return d.toISOString().slice(0,10); })();
-    toKey   = document.getElementById('weekly-to')?.value    || todayKey();
+    fromKey = document.getElementById('weekly-from')?.value || (() => { const d=new Date(); d.setDate(d.getDate()-6); return d.toISOString().slice(0,10); })();
+    toKey   = document.getElementById('weekly-to')?.value   || todayKey();
   }
 
-  const fromLabel  = new Date(fromKey+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-  const toLabel    = new Date(toKey+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-  const rangeLabel = fromKey === toKey ? fromLabel : `${fromLabel} – ${toLabel}`;
+  const fmtDate = k => new Date(k+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const rangeLabel = fromKey === toKey ? fmtDate(fromKey) : `${fmtDate(fromKey)} – ${fmtDate(toKey)}`;
 
-  doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(78,116,82);
-  doc.text('Mama Daily Tracker', 20, 20);
-  doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(90,107,92);
-  doc.text(`${type === 'daily' ? 'Daily' : 'Weekly'} Report — ${rangeLabel}`, 20, 28);
-  doc.text(`Patient: ${CONFIG.patientName}`, 20, 36);
-  if (!includeAttachments) {
-    doc.setFontSize(9); doc.setTextColor(150,100,100);
-    doc.text('Note: Photo attachments excluded from this export', 20, 42);
-  }
-  doc.setDrawColor(184,212,186);
-  doc.line(20, includeAttachments ? 40 : 46, 190, includeAttachments ? 40 : 46);
+  // ── PDF helpers ────────────────────────────────────────
+  let y = 0;
+  const pageH = 285, pageW = 190, marginL = 14, marginR = 196;
 
-  let y = includeAttachments ? 48 : 54;
-  const addLine = (label, val) => {
-    doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(50,50,50);
-    doc.text(String(label), 20, y);
-    doc.setFont('helvetica','bold');
-    const valLines = doc.splitTextToSize(String(val), 80);
-    doc.text(valLines, 190, y, { align:'right' });
-    y += Math.max(7, valLines.length * 6);
-    if (y > 270) { doc.addPage(); y = 20; }
-  };
-  const addSection = (title) => {
+  const checkPage = (needed = 8) => { if (y + needed > pageH) { doc.addPage(); y = 18; } };
+
+  const drawSectionDivider = (label) => {
+    checkPage(14);
     y += 4;
-    doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(78,116,82);
-    doc.text(title, 20, y); y += 8;
+    doc.setDrawColor(184,212,186);
+    doc.setLineWidth(0.4);
+    doc.line(marginL, y, marginR, y);
+    y += 5;
+    doc.setFont('helvetica','bold'); doc.setFontSize(9);
+    doc.setTextColor(78,116,82);
+    doc.text(label.toUpperCase(), marginL, y);
+    y += 5;
+    doc.setDrawColor(220,235,220);
+    doc.setLineWidth(0.2);
+    doc.line(marginL, y, marginR, y);
+    y += 4;
   };
 
-  if (type === 'daily') {
-    const dateKeys = [];
-    let cur = new Date(fromKey+'T12:00:00');
-    const endD = new Date(toKey+'T12:00:00');
-    while (cur <= endD) { dateKeys.push(cur.toISOString().slice(0,10)); cur.setDate(cur.getDate()+1); }
+  const drawDayDivider = () => {
+    checkPage(10);
+    y += 3;
+    doc.setDrawColor(160,195,164);
+    doc.setLineWidth(0.6);
+    doc.line(marginL, y, marginR, y);
+    y += 6;
+  };
 
-    for (const dateKey of dateKeys) {
-      const data = getDataForDate(dateKey);
-      const dateLabel = new Date(dateKey+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-      addSection(`Daily Summary — ${dateLabel}`);
-      if (!data) {
-        doc.setFont('helvetica','italic'); doc.setFontSize(10); doc.setTextColor(150,150,150);
-        doc.text('No data logged for this day.', 20, y); y += 8; continue;
+  const addRow = (label, val, indent=0) => {
+    checkPage(8);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(60,70,60);
+    doc.text(String(label), marginL + indent, y);
+    doc.setFont('helvetica','bold'); doc.setTextColor(30,40,30);
+    const valStr = String(val);
+    const valLines = doc.splitTextToSize(valStr, 70);
+    doc.text(valLines, marginR, y, { align:'right' });
+    y += Math.max(6.5, valLines.length * 5.5);
+  };
+
+  // Compact table helper for the compilation summary
+  const drawTable = (headers, rows, colWidths) => {
+    checkPage(12);
+    const rowH = 7;
+    const totalW = colWidths.reduce((a,b)=>a+b,0);
+
+    // Header row
+    doc.setFillColor(236,246,237);
+    doc.rect(marginL, y, totalW, rowH, 'F');
+    doc.setDrawColor(184,212,186); doc.setLineWidth(0.3);
+    doc.rect(marginL, y, totalW, rowH, 'S');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(78,116,82);
+    let cx = marginL + 2;
+    headers.forEach((h, i) => {
+      doc.text(h, cx, y + 4.8);
+      cx += colWidths[i];
+    });
+    y += rowH;
+
+    // Data rows
+    rows.forEach((row, ri) => {
+      checkPage(rowH + 2);
+      if (ri % 2 === 0) {
+        doc.setFillColor(250,253,250);
+        doc.rect(marginL, y, totalW, rowH, 'F');
       }
-      const meds  = TASKS.filter(t => t.isMed);
-      const meals = TASKS.filter(t => t.isMeal);
-      const totalWater = Math.max(0, (data.water||[]).reduce((s,w) => s+(w.deducted?-w.amount_ml:w.amount_ml),0));
-      addLine('Medications', `${meds.filter(t=>data.tasks?.[t.id]?.status==='done').length} / ${meds.length}`);
-      addLine('Meals',       `${meals.filter(t=>data.tasks?.[t.id]?.status==='done').length} / ${meals.length}`);
-      addLine('Water',       `${totalWater} ml`);
-      addLine('Mood',        data.reflection?.mood || 'Not logged');
-      const mealNotes = meals.filter(t => data.tasks?.[t.id]?.notes);
-      if (mealNotes.length) { addSection('What Was Eaten'); mealNotes.forEach(t => addLine(t.label, data.tasks[t.id].notes)); }
-      if ((data.symptoms||[]).length) {
-        addSection('Symptoms');
-        const sev={1:'Mild',2:'Low',3:'Moderate',4:'High',5:'Severe'};
-        data.symptoms.forEach(s => { const sym=SYMPTOMS.find(x=>x.id===s.symptom); addLine(sym?.label||s.symptom,`Severity ${s.severity}/5 — ${sev[s.severity]}`); });
-      }
-      if (data.reflection?.notes) {
-        addSection('Reflection');
-        doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(50,50,50);
-        const lines = doc.splitTextToSize(data.reflection.notes, 160);
-        doc.text(lines, 20, y); y += lines.length * 6 + 4;
-      }
-      if ((data.notes||[]).length) {
-        addSection('Notes');
-        data.notes.forEach(n => {
-          doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(50,50,50);
-          const lines = doc.splitTextToSize(n.text, 160);
-          doc.text(lines, 20, y); y += lines.length * 6 + 4;
-          if (y > 270) { doc.addPage(); y = 20; }
-        });
-      }
-      const dayEvents = loadEvents().filter(e => e.date === dateKey);
-      if (dayEvents.length) {
-        addSection('Appointments');
-        const tLabel = { chemo:'Chemo Session', checkup:'Doctor Visit', other:'Appointment' };
-        dayEvents.forEach(ev => {
-          addLine(ev.title, `${tLabel[ev.type]}${ev.time?' · '+ev.time:''}`);
-          if (ev.notes) { doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(100,100,100); doc.text(ev.notes,25,y); y+=6; }
-          if (ev.photos?.length && includeAttachments) {
-            doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(100,100,100);
-            doc.text(`${ev.photos.length} photo attachment${ev.photos.length>1?'s':''} on file`,25,y); y+=6;
-            ev.photos.forEach((url,i) => {
-              doc.setTextColor(78,116,82);
-              doc.text(`  Photo ${i+1}: ${url.length>60?url.substring(0,57)+'...':url}`,25,y); y+=5;
-              if (y>270) { doc.addPage(); y=20; }
-            });
-          }
-          y += 2;
-        });
-      }
-      if (y < 268) { y += 4; doc.setDrawColor(220,230,220); doc.line(20,y,190,y); y+=6; }
+      doc.setDrawColor(220,235,220); doc.setLineWidth(0.2);
+      doc.line(marginL, y, marginL+totalW, y);
+      doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(40,50,40);
+      cx = marginL + 2;
+      row.forEach((cell, i) => {
+        const cellStr = String(cell ?? '—');
+        const truncated = cellStr.length > 22 ? cellStr.slice(0,20)+'…' : cellStr;
+        doc.text(truncated, cx, y + 5);
+        cx += colWidths[i];
+      });
+      y += rowH;
+    });
+    // Bottom border
+    doc.setDrawColor(184,212,186); doc.setLineWidth(0.3);
+    doc.line(marginL, y, marginL+totalW, y);
+    y += 4;
+  };
+
+  // ── Page header ─────────────────────────────────────────
+  doc.setFillColor(236,246,237);
+  doc.rect(0, 0, 210, 14, 'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(78,116,82);
+  doc.text('Mama Daily Tracker', marginL, 9.5);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(100,120,100);
+  doc.text(`${type === 'daily' ? 'Daily' : 'Range'} Report — ${rangeLabel}`, marginR, 9.5, { align:'right' });
+  doc.setDrawColor(122,158,126); doc.setLineWidth(0.5);
+  doc.line(0, 14, 210, 14);
+
+  y = 20;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(90,107,92);
+  doc.text(`Patient: ${CONFIG.patientName}`, marginL, y);
+  doc.text(`Generated: ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`, marginR, y, { align:'right' });
+  if (!includeAttachments) {
+    y += 5;
+    doc.setFontSize(8); doc.setTextColor(160,100,100);
+    doc.text('Note: Photo attachments excluded from this export', marginL, y);
+  }
+  y += 8;
+
+  // ── Collect all dates ────────────────────────────────────
+  const dateKeys = [];
+  let cur = new Date(fromKey+'T12:00:00');
+  const endD = new Date(toKey+'T12:00:00');
+  while (cur <= endD) { dateKeys.push(cur.toISOString().slice(0,10)); cur.setDate(cur.getDate()+1); }
+  const isRange = dateKeys.length > 1;
+
+  const sev = {1:'Mild',2:'Low',3:'Moderate',4:'High',5:'Severe'};
+  const tLabel = { chemo:'Chemo Session', checkup:'Doctor Visit', other:'Appointment' };
+
+  // ── SECTION 1: Compilation summary table (range only) ────
+  if (isRange) {
+    drawSectionDivider('Compilation Summary');
+
+    // Aggregate stats
+    let tMeds=0,pMeds=0,tMeals=0,pMeals=0,tWater=0,dData=0;
+    const sCounts={}, moodArr=[];
+    const compRows = [];
+
+    dateKeys.forEach(dk => {
+      const d = getDataForDate(dk);
+      const dayLabel = new Date(dk+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      if (!d) { compRows.push([dayLabel,'—','—','—','—','—']); return; }
+      dData++;
+      const meds  = TASKS.filter(t=>t.isMed);
+      const meals = TASKS.filter(t=>t.isMeal);
+      const dMeds  = meds.filter(t=>d.tasks?.[t.id]?.status==='done').length;
+      const dMeals = meals.filter(t=>d.tasks?.[t.id]?.status==='done').length;
+      const water  = Math.max(0,(d.water||[]).reduce((s,w)=>s+(w.deducted?-w.amount_ml:w.amount_ml),0));
+      const topSym = Object.entries((d.symptoms||[]).reduce((a,s)=>{a[s.symptom]=(a[s.symptom]||0)+1;return a;},{})).sort((a,b)=>b[1]-a[1])[0];
+      const symLabel = topSym ? (SYMPTOMS.find(s=>s.id===topSym[0])?.label||topSym[0]) : '—';
+      pMeds+=meds.length; pMeals+=meals.length; tMeds+=dMeds; tMeals+=dMeals; tWater+=water;
+      (d.symptoms||[]).forEach(s=>{sCounts[s.symptom]=(sCounts[s.symptom]||0)+1;});
+      if(d.reflection?.mood)moodArr.push(d.reflection.mood);
+      compRows.push([dayLabel, `${dMeds}/${meds.length}`, `${dMeals}/${meals.length}`, `${water} ml`, d.reflection?.mood||'—', symLabel]);
+    });
+
+    drawTable(
+      ['Date','Meds','Meals','Water','Mood','Top Symptom'],
+      compRows,
+      [38, 18, 18, 22, 22, 64]
+    );
+
+    // Totals strip
+    checkPage(18);
+    doc.setFillColor(236,246,237);
+    doc.rect(marginL, y, 182, 10, 'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(78,116,82);
+    const medPct = pMeds ? Math.round((tMeds/pMeds)*100) : 0;
+    const avgW   = dData ? Math.round(Math.max(0,tWater)/dData) : 0;
+    const topSym = Object.entries(sCounts).sort((a,b)=>b[1]-a[1])[0];
+    const topMd  = Object.entries(moodArr.reduce((a,m)=>{a[m]=(a[m]||0)+1;return a;},{})).sort((a,b)=>b[1]-a[1])[0];
+    doc.text(`Med adherence: ${medPct}%   |   Avg water: ${avgW} ml/day   |   Top symptom: ${topSym?(SYMPTOMS.find(s=>s.id===topSym[0])?.label||topSym[0]):'None'}   |   Mood trend: ${topMd?topMd[0]:'—'}`, marginL+3, y+6.5);
+    y += 14;
+  }
+
+  // ── SECTION 2: Day-by-day detail ────────────────────────
+  drawSectionDivider(isRange ? 'Daily Detail' : 'Daily Report');
+
+  for (const dateKey of dateKeys) {
+    const data = getDataForDate(dateKey);
+    const dateLabel = new Date(dateKey+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+
+    checkPage(14);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(50,80,55);
+    doc.text(dateLabel, marginL, y); y += 6;
+
+    if (!data) {
+      doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(150,150,150);
+      doc.text('No data logged for this day.', marginL + 4, y); y += 8;
+      if (dateKeys.indexOf(dateKey) < dateKeys.length - 1) drawDayDivider();
+      continue;
     }
 
-  } else {
-    addSection(`Summary — ${rangeLabel}`);
-    const days = [];
-    let cur = new Date(fromKey+'T12:00:00');
-    const endD = new Date(toKey+'T12:00:00');
-    while (cur<=endD) { const k=cur.toISOString().slice(0,10); const raw=localStorage.getItem(`cc_${k}`); days.push({dateKey:k,data:raw?JSON.parse(raw):(k===todayKey()?STATE:null)}); cur.setDate(cur.getDate()+1); }
-    let tMeds=0,pMeds=0,tMeals=0,pMeals=0,tWater=0,dData=0;
-    const sCounts={}, moods=[];
-    days.forEach(({data:d})=>{
-      if(!d)return; dData++;
-      const meds=TASKS.filter(t=>t.isMed), meals=TASKS.filter(t=>t.isMeal);
-      pMeds+=meds.length; pMeals+=meals.length;
-      tMeds+=meds.filter(t=>d.tasks?.[t.id]?.status==='done').length;
-      tMeals+=meals.filter(t=>d.tasks?.[t.id]?.status==='done').length;
-      (d.water||[]).forEach(w=>{tWater+=w.deducted?-w.amount_ml:w.amount_ml;});
-      (d.symptoms||[]).forEach(s=>{sCounts[s.symptom]=(sCounts[s.symptom]||0)+1;});
-      if(d.reflection?.mood)moods.push(d.reflection.mood);
+    const meds  = TASKS.filter(t=>t.isMed);
+    const meals = TASKS.filter(t=>t.isMeal);
+    const totalWater = Math.max(0,(data.water||[]).reduce((s,w)=>s+(w.deducted?-w.amount_ml:w.amount_ml),0));
+
+    // Vitals sub-header
+    drawSectionDivider('Summary');
+    addRow('Medications taken', `${meds.filter(t=>data.tasks?.[t.id]?.status==='done').length} / ${meds.length}`);
+    addRow('Meals completed',   `${meals.filter(t=>data.tasks?.[t.id]?.status==='done').length} / ${meals.length}`);
+    addRow('Water intake',      `${totalWater} ml`);
+    addRow('Mood',              data.reflection?.mood || 'Not logged');
+
+    // Medications
+    drawSectionDivider('Medications');
+    meds.forEach(t => {
+      const st = data.tasks?.[t.id];
+      const status = !st||st.status==='pending' ? 'Pending' : st.status==='done' ? '✓ Taken' : 'Skipped';
+      const time = st?.timestamp ? new Date(st.timestamp).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : '';
+      addRow(t.label, `${status}${time?' · '+time:''}`, 2);
     });
-    const topS=Object.entries(sCounts).sort((a,b)=>b[1]-a[1])[0];
-    const topM=Object.entries(moods.reduce((a,m)=>{a[m]=(a[m]||0)+1;return a;},{})).sort((a,b)=>b[1]-a[1])[0];
-    addLine('Medication adherence',`${pMeds?Math.round((tMeds/pMeds)*100):0}%`);
-    addLine('Meal completion',`${tMeals} / ${pMeals}`);
-    addLine('Avg. water/day',`${dData?Math.round(Math.max(0,tWater)/dData):0} ml`);
-    addLine('Most frequent symptom',topS?(SYMPTOMS.find(s=>s.id===topS[0])?.label||topS[0])+` (${topS[1]}x)`:'None');
-    addLine('Mood trend',topM?`${topM[0]} (${topM[1]}/${moods.length} days)`:'—');
-    addLine('Days with data',`${dData} of ${days.length}`);
-    const wEvts = loadEvents().filter(e=>e.date>=fromKey&&e.date<=toKey);
-    if (wEvts.length) {
-      addSection('Appointments');
-      const tLabel={chemo:'Chemo Session',checkup:'Doctor Visit',other:'Appointment'};
-      wEvts.forEach(ev => {
-        const d=new Date(ev.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-        addLine(`${d} — ${ev.title}`,tLabel[ev.type]);
-        if(ev.notes){doc.setFont('helvetica','italic');doc.setFontSize(9);doc.setTextColor(100,100,100);doc.text(ev.notes,25,y);y+=6;}
-        if(ev.photos?.length&&includeAttachments){doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(78,116,82);doc.text(`  ${ev.photos.length} photo attachment${ev.photos.length>1?'s':''} on file`,25,y);y+=5;}
-        y+=2;
+
+    // Meals
+    const mealNotes = meals.filter(t=>data.tasks?.[t.id]?.notes);
+    drawSectionDivider('Meals');
+    meals.forEach(t => {
+      const st = data.tasks?.[t.id];
+      const status = !st||st.status==='pending' ? 'Pending' : st.status==='done' ? '✓ Done' : 'Skipped';
+      addRow(t.label, `${status}${st?.notes?' — '+st.notes:''}`, 2);
+    });
+    if (Object.values(data.customTasks||{}).flat().filter(t=>t.status==='done').length) {
+      const snacks = Object.values(data.customTasks||{}).flat().filter(t=>t.status==='done');
+      snacks.forEach(t => addRow(`  + ${t.label}`, 'Extra', 2));
+    }
+
+    // Symptoms
+    drawSectionDivider('Symptoms');
+    if ((data.symptoms||[]).length) {
+      data.symptoms.forEach(s => {
+        const sym = SYMPTOMS.find(x=>x.id===s.symptom);
+        addRow(sym?.label||s.symptom, `Level ${s.severity}/5 — ${sev[s.severity]}`, 2);
+      });
+    } else {
+      doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(160,160,160);
+      doc.text('None logged', marginL+6, y); y += 6;
+    }
+
+    // Appointments
+    const dayEvents = loadEvents().filter(e=>e.date===dateKey);
+    if (dayEvents.length) {
+      drawSectionDivider('Appointments');
+      dayEvents.forEach(ev => {
+        addRow(ev.title, `${tLabel[ev.type]}${ev.time?' · '+ev.time:''}`, 2);
+        if (ev.notes) {
+          checkPage(6);
+          doc.setFont('helvetica','italic'); doc.setFontSize(8.5); doc.setTextColor(110,110,110);
+          doc.text(ev.notes, marginL+8, y); y+=5;
+        }
+        if (ev.photos?.length && includeAttachments) {
+          checkPage(6);
+          doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(78,116,82);
+          doc.text(`📎 ${ev.photos.length} photo attachment${ev.photos.length>1?'s':''} on file`, marginL+8, y); y+=5;
+          ev.photos.forEach((url,i) => {
+            checkPage(5);
+            doc.setFontSize(8); doc.setTextColor(100,140,100);
+            doc.text(`  Photo ${i+1}: ${url.length>55?url.slice(0,52)+'…':url}`, marginL+10, y); y+=4.5;
+          });
+        }
       });
     }
+
+    // Reflection
+    if (data.reflection?.notes) {
+      drawSectionDivider('Reflection');
+      checkPage(10);
+      doc.setFont('helvetica','italic'); doc.setFontSize(9.5); doc.setTextColor(80,70,110);
+      const lines = doc.splitTextToSize(`"${data.reflection.notes}"`, 170);
+      doc.text(lines, marginL+4, y); y += lines.length * 5.5 + 3;
+    }
+
+    // Notes
+    if ((data.notes||[]).length) {
+      drawSectionDivider('Notes');
+      data.notes.forEach(n => {
+        checkPage(8);
+        doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(60,70,60);
+        const lines = doc.splitTextToSize(`• ${n.text}`, 170);
+        doc.text(lines, marginL+4, y); y += lines.length * 5.5 + 2;
+      });
+    }
+
+    // Day separator (not after last day)
+    if (dateKeys.indexOf(dateKey) < dateKeys.length - 1) drawDayDivider();
   }
 
-  doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(150,150,150);
-  doc.text(`Generated by Mama Daily Tracker · ${new Date().toLocaleDateString()} · For medical use`, 20, 285);
+  // ── Footer on every page ────────────────────────────────
+  const pageCount = doc.getNumberOfPages();
+  for (let p = 1; p <= pageCount; p++) {
+    doc.setPage(p);
+    doc.setDrawColor(184,212,186); doc.setLineWidth(0.3);
+    doc.line(marginL, 291, marginR, 291);
+    doc.setFont('helvetica','italic'); doc.setFontSize(7.5); doc.setTextColor(160,160,160);
+    doc.text(`Mama Daily Tracker · For medical use · ${new Date().toLocaleDateString()}`, marginL, 295);
+    doc.text(`Page ${p} of ${pageCount}`, marginR, 295, { align:'right' });
+  }
+
   doc.save(`mama-${type}-${fromKey}${fromKey!==toKey?'_to_'+toKey:''}.pdf`);
   showToast('PDF downloaded!');
 }
