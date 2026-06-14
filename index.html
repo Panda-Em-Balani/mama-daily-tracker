@@ -577,11 +577,27 @@
       margin-bottom: 12px;
     }
     .report-range-row {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;
+      display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;
     }
-    .report-range-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-    .report-range-label { font-size: 10px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.6px; }
-    .report-range-field input[type="date"] { font-size: 12px; padding: 8px 10px; min-width: 0; width: 100%; }
+    .report-range-field { display: flex; align-items: center; gap: 10px; }
+    .report-range-label {
+      font-size: 11px; font-weight: 600; color: var(--ink-muted);
+      text-transform: uppercase; letter-spacing: 0.6px;
+      white-space: nowrap; width: 32px; flex-shrink: 0;
+    }
+    .report-range-field input[type="date"] {
+      flex: 1; min-width: 0; width: 100%;
+      font-size: 13px; padding: 9px 12px; margin-top: 0;
+      border: 1.5px solid rgba(122,158,126,0.2);
+      border-radius: var(--radius-sm);
+      background: var(--cream); color: var(--ink);
+      font-family: var(--font-sans);
+      -webkit-appearance: none; appearance: none;
+      box-sizing: border-box;
+    }
+    .report-range-field input[type="date"]:focus {
+      border-color: var(--sage); background: white; outline: none;
+    }
     .report-attach-toggle {
       display: flex; align-items: center; gap: 8px; cursor: pointer;
       font-size: 12px; color: var(--ink-soft); font-weight: 400;
@@ -950,11 +966,11 @@
           <div class="report-range-row">
             <div class="report-range-field">
               <label class="report-range-label">From</label>
-              <input type="date" id="daily-from" style="margin-top:0" onchange="renderDailyReport()" />
+              <input type="date" id="daily-from" onchange="renderDailyReport()" />
             </div>
             <div class="report-range-field">
               <label class="report-range-label">To</label>
-              <input type="date" id="daily-to" style="margin-top:0" onchange="renderDailyReport()" />
+              <input type="date" id="daily-to" onchange="renderDailyReport()" />
             </div>
           </div>
           <label class="report-attach-toggle">
@@ -973,11 +989,11 @@
           <div class="report-range-row">
             <div class="report-range-field">
               <label class="report-range-label">From</label>
-              <input type="date" id="weekly-from" style="margin-top:0" onchange="renderWeeklyReport()" />
+              <input type="date" id="weekly-from" onchange="renderWeeklyReport()" />
             </div>
             <div class="report-range-field">
               <label class="report-range-label">To</label>
-              <input type="date" id="weekly-to" style="margin-top:0" onchange="renderWeeklyReport()" />
+              <input type="date" id="weekly-to" onchange="renderWeeklyReport()" />
             </div>
           </div>
           <label class="report-attach-toggle">
@@ -3104,16 +3120,22 @@ async function exportPDF(type) {
     });
 
     // Meals
-    const mealNotes = meals.filter(t=>data.tasks?.[t.id]?.notes);
     drawSectionDivider('Meals');
     meals.forEach(t => {
       const st = data.tasks?.[t.id];
-      const status = !st||st.status==='pending' ? 'Pending' : st.status==='done' ? '✓ Done' : 'Skipped';
-      addRow(t.label, `${status}${st?.notes?' — '+st.notes:''}`, 2);
+      const status = !st||st.status==='pending' ? 'Pending' : st.status==='done' ? 'Done' : 'Skipped';
+      addRow(t.label, status, 2);
+      // What was eaten — render on its own indented line so it doesn't truncate
+      if (st?.notes) {
+        checkPage(7);
+        doc.setFont('helvetica','italic'); doc.setFontSize(8.5); doc.setTextColor(80,110,85);
+        const noteLines = doc.splitTextToSize(st.notes, 158);
+        doc.text(noteLines, marginL+8, y); y += noteLines.length * 5 + 2;
+      }
     });
     if (Object.values(data.customTasks||{}).flat().filter(t=>t.status==='done').length) {
       const snacks = Object.values(data.customTasks||{}).flat().filter(t=>t.status==='done');
-      snacks.forEach(t => addRow(`  + ${t.label}`, 'Extra', 2));
+      snacks.forEach(t => addRow(`Extra snack`, t.label, 2));
     }
 
     // Symptoms
@@ -3132,24 +3154,39 @@ async function exportPDF(type) {
     const dayEvents = loadEvents().filter(e=>e.date===dateKey);
     if (dayEvents.length) {
       drawSectionDivider('Appointments');
-      dayEvents.forEach(ev => {
-        addRow(ev.title, `${tLabel[ev.type]}${ev.time?' · '+ev.time:''}`, 2);
+      for (const ev of dayEvents) {
+        addRow(ev.title, `${tLabel[ev.type]}${ev.time?' - '+ev.time:''}`, 2);
         if (ev.notes) {
           checkPage(6);
           doc.setFont('helvetica','italic'); doc.setFontSize(8.5); doc.setTextColor(110,110,110);
           doc.text(ev.notes, marginL+8, y); y+=5;
         }
         if (ev.photos?.length && includeAttachments) {
-          checkPage(6);
-          doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(78,116,82);
-          doc.text(`📎 ${ev.photos.length} photo attachment${ev.photos.length>1?'s':''} on file`, marginL+8, y); y+=5;
-          ev.photos.forEach((url,i) => {
-            checkPage(5);
-            doc.setFontSize(8); doc.setTextColor(100,140,100);
-            doc.text(`  Photo ${i+1}: ${url.length>55?url.slice(0,52)+'…':url}`, marginL+10, y); y+=4.5;
-          });
+          for (const url of ev.photos) {
+            try {
+              // Fetch image and embed it directly in the PDF
+              const resp = await fetch(url);
+              if (!resp.ok) throw new Error('fetch failed');
+              const blob = await resp.blob();
+              const b64  = await new Promise((res, rej) => {
+                const r = new FileReader();
+                r.onload  = () => res(r.result);
+                r.onerror = rej;
+                r.readAsDataURL(blob);
+              });
+              const imgW = 60, imgH = 45;
+              checkPage(imgH + 6);
+              doc.addImage(b64, marginL+8, y, imgW, imgH);
+              y += imgH + 4;
+            } catch(e) {
+              // Fallback: just print the URL cleanly if image can't load
+              checkPage(6);
+              doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(100,140,100);
+              doc.text(`Attachment: ${url.length>60?url.slice(0,57)+'...':url}`, marginL+8, y); y+=5;
+            }
+          }
         }
-      });
+      }
     }
 
     // Reflection
