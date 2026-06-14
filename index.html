@@ -579,6 +579,143 @@
     }
     input[type="time"]:focus { border-color: var(--sage); background: white; }
     .form-label { font-size: 12px; font-weight: 500; color: var(--ink-soft); margin-top: 14px; display: block; letter-spacing: 0.3px; }
+
+    /* ─── REPORT TAB ENHANCEMENTS ──────────────────────────── */
+    .report-date-range-card {
+      background: var(--warm-white); border-radius: var(--radius-md);
+      padding: 14px 16px; box-shadow: var(--shadow-sm);
+      margin-bottom: 14px;
+    }
+    .report-range-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;
+    }
+    .report-range-field { display: flex; flex-direction: column; gap: 4px; }
+    .report-range-label { font-size: 11px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.6px; }
+    .report-attach-toggle {
+      display: flex; align-items: center; gap: 8px; cursor: pointer;
+      font-size: 13px; color: var(--ink-soft); font-weight: 400;
+      padding: 4px 0;
+    }
+    .report-attach-toggle input[type="checkbox"] {
+      width: 16px; height: 16px; accent-color: var(--sage-deep);
+      cursor: pointer; flex-shrink: 0; margin: 0;
+    }
+
+    .report-summary-generate-btn { display: none; }
+
+    /* ─── PROFESSIONAL REPORT STYLES ───────────────────────── */
+    .report-block { background: transparent; box-shadow: none; padding: 0; }
+    .rpt-day-card {
+      background: var(--warm-white); border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm); margin-bottom: 16px; overflow: hidden;
+    }
+    .rpt-day-header {
+      background: linear-gradient(135deg, var(--sage-pale) 0%, #f0f8f0 100%);
+      padding: 12px 16px; border-bottom: 1px solid rgba(122,158,126,0.15);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .rpt-day-title { font-family: var(--font-serif); font-size: 14px; font-weight: 600; color: var(--sage-deep); }
+    .rpt-empty-day { padding: 16px; font-size: 13px; color: var(--ink-muted); font-style: italic; }
+
+    /* Vitals strip */
+    .rpt-vitals-row {
+      display: flex; align-items: stretch; border-bottom: 1px solid rgba(122,158,126,0.1);
+    }
+    .rpt-vital { flex: 1; padding: 12px 8px; text-align: center; }
+    .rpt-vital-val { font-family: var(--font-serif); font-size: 20px; font-weight: 600; color: var(--ink); line-height: 1.1; }
+    .rpt-vital-unit { font-size: 11px; font-weight: 400; color: var(--ink-muted); }
+    .rpt-vital-extra { font-size: 11px; font-weight: 500; color: var(--sage-deep); background: var(--sage-pale); border-radius: 8px; padding: 1px 5px; margin-left: 2px; }
+    .rpt-vital-label { font-size: 10px; color: var(--ink-muted); margin-top: 3px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.4px; }
+    .rpt-vital-divider { width: 1px; background: rgba(122,158,126,0.12); flex-shrink: 0; }
+
+    /* Section label */
+    .rpt-section-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.9px;
+      color: var(--ink-muted); padding: 10px 16px 4px; background: var(--cream);
+      border-top: 1px solid rgba(122,158,126,0.08);
+    }
+
+    /* Table */
+    .rpt-table { width: 100%; border-collapse: collapse; }
+    .rpt-th {
+      font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--ink-muted); padding: 8px 16px; text-align: left;
+      background: rgba(122,158,126,0.04); border-bottom: 1px solid rgba(122,158,126,0.12);
+    }
+    .rpt-th-center { text-align: center; }
+    .rpt-td {
+      font-size: 13px; color: var(--ink-soft); padding: 9px 16px;
+      border-bottom: 1px solid rgba(122,158,126,0.07); vertical-align: middle;
+    }
+    .rpt-td:last-child { border-bottom: none; }
+    .rpt-table tr:last-child .rpt-td { border-bottom: none; }
+    .rpt-td-label { font-weight: 500; color: var(--ink); width: 45%; }
+    .rpt-td-right { text-align: right; }
+    .rpt-td-center { text-align: center; }
+    .rpt-muted { color: var(--ink-muted) !important; font-style: italic; }
+    .rpt-meal-note { font-size: 11px; color: var(--sage-deep); font-weight: 400; margin-top: 2px; font-style: italic; }
+    .rpt-note-cell { color: var(--ink-soft); font-style: italic; padding: 10px 16px; }
+
+    /* Status badges */
+    .rpt-status {
+      display: inline-block; font-size: 11px; font-weight: 600;
+      padding: 2px 9px; border-radius: 20px; white-space: nowrap;
+    }
+    .rpt-status-done    { background: var(--sage-pale);   color: var(--sage-deep); }
+    .rpt-status-skip    { background: var(--blush-light);  color: var(--rose); }
+    .rpt-status-pending { background: rgba(143,161,145,0.12); color: var(--ink-muted); }
+    .rpt-status-partial { background: #fff8e6; color: #7a5c0a; }
+    .rpt-status-event   { background: rgba(160,140,200,0.15); color: var(--lavender); }
+
+    /* Severity badge */
+    .rpt-sev-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 20px; }
+
+    /* Symptom bar */
+    .rpt-bar-wrap { height: 6px; background: rgba(122,158,126,0.12); border-radius: 3px; min-width: 60px; overflow: hidden; }
+    .rpt-bar-fill { height: 100%; background: var(--sage); border-radius: 3px; transition: width 0.4s ease; }
+
+    /* Photo badge */
+    .rpt-photo-badge { font-size: 10px; color: var(--sky-deep); margin-left: 4px; }
+    .rpt-sym-dot { display: inline-block; background: var(--blush-light); color: var(--rose); font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 20px; margin-left: 3px; }
+
+    /* Reflection block */
+    .rpt-reflection-block {
+      margin: 0; padding: 12px 16px 14px;
+      background: linear-gradient(135deg, rgba(160,140,200,0.06) 0%, rgba(122,158,126,0.04) 100%);
+      border-top: 1px solid rgba(122,158,126,0.08);
+    }
+    .rpt-reflection-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.9px; color: var(--lavender); display: block; margin-bottom: 6px; }
+    .rpt-reflection-text { font-family: var(--font-serif); font-size: 13px; color: var(--ink-soft); font-style: italic; line-height: 1.6; margin: 0; }
+
+    /* ─── NOTIFICATION BANNER ───────────────────────────────── */
+    #notif-banner {
+      flex-shrink: 0; z-index: 9; overflow: hidden;
+      max-height: 0; transition: max-height 0.35s ease;
+    }
+    #notif-banner.has-notifs { max-height: 300px; }
+    .notif-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 20px; border-bottom: 1px solid rgba(122,158,126,0.1);
+      background: var(--warm-white);
+      animation: notifSlideIn 0.3s ease;
+    }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item.notif-meal    { border-left: 3px solid var(--gold); }
+    .notif-item.notif-water   { border-left: 3px solid var(--sky); }
+    .notif-item.notif-event   { border-left: 3px solid var(--lavender); }
+    .notif-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-title { font-size: 13px; font-weight: 600; color: var(--ink); }
+    .notif-sub   { font-size: 11px; color: var(--ink-muted); margin-top: 1px; }
+    .notif-dismiss {
+      background: none; border: none; color: var(--ink-muted);
+      font-size: 16px; cursor: pointer; padding: 0 2px; line-height: 1;
+      flex-shrink: 0; -webkit-tap-highlight-color: transparent;
+    }
+    @keyframes notifSlideIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
@@ -607,6 +744,9 @@
     <span class="readonly-banner-text">View Only Mode</span>
     <span class="readonly-banner-sub">— tap the lock icon to edit</span>
   </div>
+
+  <!-- NOTIFICATION BANNER -->
+  <div id="notif-banner" style="display:none"></div>
 
   <!-- SCROLL AREA -->
   <main class="scroll-area">
@@ -692,8 +832,6 @@
 
       <div class="water-controls">
         <button class="water-btn" onclick="addWater(250)">+ 250 ml</button>
-        <button class="water-btn" onclick="addWater(500)">+ 500 ml</button>
-        <button class="water-btn" onclick="addWater(750)">+ 750 ml</button>
         <button class="water-btn custom-amt" onclick="openCustomWater()">+ Custom</button>
         <button class="water-btn deduct" onclick="openDeductWater()">− Deduct</button>
       </div>
@@ -759,7 +897,7 @@
     <div class="page fade-in" id="page-notes">
       <div class="journal-tabs">
         <button class="journal-tab active" id="jtab-reflection" onclick="switchJournalTab('reflection')">Reflection</button>
-        <button class="journal-tab" id="jtab-notes" onclick="switchJournalTab('notes')">Notes</button>
+        <button class="journal-tab" id="jtab-notes" onclick="switchJournalTab('notes')">Journal Notes</button>
       </div>
 
       <!-- REFLECTION PANE -->
@@ -814,17 +952,51 @@
         <button class="pill-tab active" id="tab-daily" onclick="switchReport('daily')">Daily</button>
         <button class="pill-tab" id="tab-weekly" onclick="switchReport('weekly')">Weekly</button>
       </div>
+
+      <!-- ── DAILY ── -->
       <div id="report-daily">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-          <label style="font-size:12px;font-weight:500;color:var(--ink-soft);white-space:nowrap">Report date:</label>
-          <input type="date" id="report-date-picker" style="margin-top:0;flex:1" onchange="renderDailyReport()" />
+        <div class="report-date-range-card">
+          <div class="report-range-row">
+            <div class="report-range-field">
+              <label class="report-range-label">From</label>
+              <input type="date" id="daily-from" style="margin-top:0" onchange="renderDailyReport()" />
+            </div>
+            <div class="report-range-field">
+              <label class="report-range-label">To</label>
+              <input type="date" id="daily-to" style="margin-top:0" onchange="renderDailyReport()" />
+            </div>
+          </div>
+          <label class="report-attach-toggle">
+            <input type="checkbox" id="daily-include-attachments" checked />
+            <span>Include photo attachments in export</span>
+          </label>
         </div>
+
         <div class="report-block" id="report-daily-content"></div>
         <button class="btn-secondary" onclick="exportPDF('daily')">📄 Export Daily Report</button>
       </div>
+
+      <!-- ── WEEKLY ── -->
       <div id="report-weekly" style="display:none">
+        <div class="report-date-range-card">
+          <div class="report-range-row">
+            <div class="report-range-field">
+              <label class="report-range-label">From</label>
+              <input type="date" id="weekly-from" style="margin-top:0" onchange="renderWeeklyReport()" />
+            </div>
+            <div class="report-range-field">
+              <label class="report-range-label">To</label>
+              <input type="date" id="weekly-to" style="margin-top:0" onchange="renderWeeklyReport()" />
+            </div>
+          </div>
+          <label class="report-attach-toggle">
+            <input type="checkbox" id="weekly-include-attachments" checked />
+            <span>Include photo attachments in export</span>
+          </label>
+        </div>
+
         <div class="report-block" id="report-weekly-content"></div>
-        <button class="btn-secondary" onclick="exportPDF('weekly')">📄 Export Weekly Report with Calendar</button>
+        <button class="btn-secondary" onclick="exportPDF('weekly')">📄 Export Weekly Report</button>
       </div>
     </div>
 
@@ -1427,12 +1599,12 @@ async function navigate(page) {
       await loadEventsFromSupabase();
       renderCalendar();
     } else if (page === 'report') {
-      initReportDatePicker();
+      initDailyDatePickers(); initWeeklyDatePickers();
       await loadFromSupabase();
       renderReport();
     }
   } else {
-    if (page === 'report') { initReportDatePicker(); renderReport(); }
+    if (page === 'report') { initDailyDatePickers(); initWeeklyDatePickers(); renderReport(); }
     if (page === 'schedule') renderCalendar();
   }
 }
@@ -1456,6 +1628,7 @@ async function init() {
   renderSyncStatus();
   setupOnlineHandlers();
   renderTodayScheduleBanner();
+  renderNotifications();
 
   // Calendar defaults
   const now = new Date();
@@ -1480,6 +1653,7 @@ async function init() {
 
     await loadEventsFromSupabase();
     renderTodayScheduleBanner();
+    renderNotifications();
   }
 
   DB.flushQueue();
@@ -1638,6 +1812,7 @@ function commitMarkTask(taskId, status, notes) {
     notes: notes || null,
   });
   renderTasks();
+  renderNotifications();
   showToast(status === 'done' ? '✓ Marked as done!' : 'Skipped');
 }
 
@@ -1836,6 +2011,7 @@ function addWater(ml, note='') {
   saveLocal();
   DB.insert('water_log', { timestamp: now, amount_ml: ml });
   renderWater();
+  renderNotifications();
   showToast(`💧 +${ml} ml added`);
 }
 
@@ -2348,7 +2524,8 @@ function switchReport(type) {
   document.getElementById('tab-weekly').classList.toggle('active', type === 'weekly');
   document.getElementById('report-daily').style.display  = type === 'daily'  ? 'block' : 'none';
   document.getElementById('report-weekly').style.display = type === 'weekly' ? 'block' : 'none';
-  if (type === 'daily') initReportDatePicker();
+  if (type === 'daily') initDailyDatePickers();
+  else initWeeklyDatePickers();
   renderReport();
 }
 
@@ -2366,13 +2543,35 @@ function getEarliestDataDate() {
   return keys[0] || todayKey();
 }
 
-function initReportDatePicker() {
-  const picker = document.getElementById('report-date-picker');
-  if (!picker) return;
-  picker.value = todayKey();
-  picker.max   = todayKey();
-  picker.min   = getEarliestDataDate();
+function initDailyDatePickers() {
+  const earliest = getEarliestDataDate();
+  const today    = todayKey();
+  const fromEl   = document.getElementById('daily-from');
+  const toEl     = document.getElementById('daily-to');
+  if (!fromEl || !toEl) return;
+  fromEl.min = earliest; fromEl.max = today;
+  toEl.min   = earliest; toEl.max   = today;
+  if (!fromEl.value) fromEl.value = today;
+  if (!toEl.value)   toEl.value   = today;
 }
+
+function initWeeklyDatePickers() {
+  const earliest = getEarliestDataDate();
+  const today    = todayKey();
+  const fromEl   = document.getElementById('weekly-from');
+  const toEl     = document.getElementById('weekly-to');
+  if (!fromEl || !toEl) return;
+  fromEl.min = earliest; fromEl.max = today;
+  toEl.min   = earliest; toEl.max   = today;
+  if (!fromEl.value) {
+    // default to last 7 days
+    const d = new Date(); d.setDate(d.getDate() - 6);
+    fromEl.value = d.toISOString().slice(0, 10);
+  }
+  if (!toEl.value) toEl.value = today;
+}
+
+function initReportDatePicker() { initDailyDatePickers(); }
 
 function getDataForDate(dateKey) {
   if (dateKey === todayKey()) return STATE;
@@ -2381,76 +2580,195 @@ function getDataForDate(dateKey) {
 }
 
 function renderDailyReport() {
-  const el        = document.getElementById('report-daily-content');
-  const picker    = document.getElementById('report-date-picker');
-  const dateKey   = picker?.value || todayKey();
-  const data      = getDataForDate(dateKey);
-  const dateLabel = new Date(dateKey + 'T12:00:00').toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+  const el      = document.getElementById('report-daily-content');
+  const fromEl  = document.getElementById('daily-from');
+  const toEl    = document.getElementById('daily-to');
+  const fromKey = fromEl?.value || todayKey();
+  const toKey   = toEl?.value   || todayKey();
 
-  if (!data) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><p>No data logged for ${dateLabel}.</p></div>`;
+  const dateKeys = [];
+  let cur = new Date(fromKey + 'T12:00:00');
+  const end = new Date(toKey + 'T12:00:00');
+  while (cur <= end) { dateKeys.push(cur.toISOString().slice(0,10)); cur.setDate(cur.getDate()+1); }
+
+  if (!dateKeys.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><p>Select a valid date range.</p></div>`;
     return;
   }
 
-  const meds      = TASKS.filter(t => t.isMed);
-  const meals     = TASKS.filter(t => t.isMeal);
-  const medsDone  = meds.filter(t => data.tasks?.[t.id]?.status === 'done').length;
-  const mealsDone = meals.filter(t => data.tasks?.[t.id]?.status === 'done').length;
-  const waterList = data.water || [];
-  const totalWater = Math.max(0, waterList.reduce((s,w) => s + (w.deducted ? -w.amount_ml : w.amount_ml), 0));
-  const snackCount = Object.values(data.customTasks || {}).flat().filter(t => t.status === 'done').length;
-  const severityLabel = {1:'Mild',2:'Low',3:'Moderate',4:'High',5:'Severe'};
+  const sevLabel  = {1:'Mild',2:'Low',3:'Moderate',4:'High',5:'Severe'};
+  const sevColor  = {1:'#c9a84c',2:'#e07a3a',3:'#d06060',4:'#b04040',5:'#802020'};
+  const sevBg     = {1:'#fff8e6',2:'#fff0e6',3:'#fce8e8',4:'#f5d8d8',5:'#edd0d0'};
+  let html = '';
 
-  // Calendar events for this date
-  const events = loadEvents().filter(e => e.date === dateKey);
+  for (const dateKey of dateKeys) {
+    const data = getDataForDate(dateKey);
+    const dateLabel = new Date(dateKey + 'T12:00:00').toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
 
-  const symptomsHtml = (data.symptoms || []).length
-    ? (data.symptoms || []).map(s => {
-        const sym = SYMPTOMS.find(x => x.id === s.symptom);
-        return `<div class="report-line"><span>${escapeHtml(sym?.label || s.symptom)}</span><span class="report-val">Level ${s.severity} – ${severityLabel[s.severity]}</span></div>`;
-      }).join('')
-    : '<div class="report-line"><span>No symptoms logged</span><span class="report-val">—</span></div>';
+    if (!data) {
+      html += `
+        <div class="rpt-day-card">
+          <div class="rpt-day-header"><span class="rpt-day-title">📋 ${dateLabel}</span></div>
+          <div class="rpt-empty-day">No data logged for this day.</div>
+        </div>`;
+      continue;
+    }
 
-  const eventsHtml = events.length
-    ? events.map(ev => {
-        const typeLabel = { chemo:'Chemo Session', checkup:'Doctor Visit', other:'Appointment' };
-        const photoNote = ev.photos?.length ? ` · ${ev.photos.length} photo attachment${ev.photos.length>1?'s':''}` : '';
-        return `<div class="report-line"><span>${escapeHtml(ev.title)}</span><span class="report-val">${typeLabel[ev.type]}${ev.time ? ' · '+ev.time : ''}${photoNote}</span></div>`;
-      }).join('')
-    : '';
+    const meds       = TASKS.filter(t => t.isMed);
+    const meals      = TASKS.filter(t => t.isMeal);
+    const medsDone   = meds.filter(t => data.tasks?.[t.id]?.status === 'done').length;
+    const mealsDone  = meals.filter(t => data.tasks?.[t.id]?.status === 'done').length;
+    const waterList  = data.water || [];
+    const totalWater = Math.max(0, waterList.reduce((s,w) => s+(w.deducted?-w.amount_ml:w.amount_ml),0));
+    const waterPct   = Math.min(100, Math.round((totalWater / CONFIG.waterGoalMl) * 100));
+    const snackCount = Object.values(data.customTasks||{}).flat().filter(t=>t.status==='done').length;
+    const events     = loadEvents().filter(e => e.date === dateKey);
+    const moodEmoji  = {Good:'🙂',Okay:'😐',Difficult:'☹️'};
+    const mood       = data.reflection?.mood;
 
-  el.innerHTML = `
-    <h3>📋 Daily Report — ${dateLabel}</h3>
-    <div class="report-line"><span>Medications taken</span><span class="report-val">${medsDone} / ${meds.length}</span></div>
-    <div class="report-line"><span>Meals completed</span><span class="report-val">${mealsDone} / ${meals.length}</span></div>
-    ${snackCount ? `<div class="report-line"><span>Extra snacks / food</span><span class="report-val">${snackCount}</span></div>` : ''}
-    <div class="report-line"><span>Water intake</span><span class="report-val">${totalWater} ml (${(totalWater/250).toFixed(1)} glasses)</span></div>
-    <div class="report-line"><span>Mood</span><span class="report-val">${data.reflection?.mood || 'Not logged'}</span></div>
-    ${data.reflection?.notes ? `<div class="report-line"><span>Reflection</span><span class="report-val">${escapeHtml(data.reflection.notes)}</span></div>` : ''}
-    <div style="margin-top:12px;margin-bottom:4px;font-size:11px;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.8px">Symptoms</div>
-    ${symptomsHtml}
-    ${eventsHtml ? `
-      <div style="margin-top:12px;margin-bottom:4px;font-size:11px;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.8px">Appointments</div>
-      ${eventsHtml}` : ''}
-    ${(data.notes || []).length ? `
-      <div style="margin-top:12px;margin-bottom:4px;font-size:11px;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.8px">Notes</div>
-      ${(data.notes || []).map(n => `<div class="report-line"><span style="flex:1">${escapeHtml(n.text)}</span></div>`).join('')}` : ''}
-  `;
+    // Medications detail
+    const medRows = meds.map(t => {
+      const st = data.tasks?.[t.id];
+      const st_class = !st || st.status==='pending' ? 'rpt-status-pending' : st.status==='done' ? 'rpt-status-done' : 'rpt-status-skip';
+      const st_label = !st || st.status==='pending' ? 'Pending' : st.status==='done' ? '✓ Taken' : 'Skipped';
+      const time = st?.timestamp ? new Date(st.timestamp).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : '';
+      return `<tr>
+        <td class="rpt-td rpt-td-label">${t.label}</td>
+        <td class="rpt-td"><span class="rpt-status ${st_class}">${st_label}</span></td>
+        <td class="rpt-td rpt-td-right rpt-muted">${time}</td>
+      </tr>`;
+    }).join('');
+
+    // Meals detail
+    const mealRows = meals.map(t => {
+      const st = data.tasks?.[t.id];
+      const st_class = !st || st.status==='pending' ? 'rpt-status-pending' : st.status==='done' ? 'rpt-status-done' : 'rpt-status-skip';
+      const st_label = !st || st.status==='pending' ? 'Pending' : st.status==='done' ? '✓ Done' : 'Skipped';
+      const note = st?.notes ? `<div class="rpt-meal-note">${escapeHtml(st.notes)}</div>` : '';
+      return `<tr>
+        <td class="rpt-td rpt-td-label">${t.label}${note}</td>
+        <td class="rpt-td"><span class="rpt-status ${st_class}">${st_label}</span></td>
+        <td class="rpt-td rpt-td-right rpt-muted">${st?.timestamp ? new Date(st.timestamp).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : ''}</td>
+      </tr>`;
+    }).join('');
+
+    // Symptoms table
+    const sympRows = (data.symptoms||[]).length
+      ? (data.symptoms||[]).map(s => {
+          const sym = SYMPTOMS.find(x => x.id === s.symptom);
+          return `<tr>
+            <td class="rpt-td rpt-td-label">${escapeHtml(sym?.label||s.symptom)}</td>
+            <td class="rpt-td"><span class="rpt-sev-badge" style="background:${sevBg[s.severity]};color:${sevColor[s.severity]}">${sevLabel[s.severity]}</span></td>
+            <td class="rpt-td rpt-td-right rpt-muted">Level ${s.severity}/5</td>
+          </tr>`;
+        }).join('')
+      : `<tr><td class="rpt-td rpt-muted" colspan="3">No symptoms logged</td></tr>`;
+
+    // Appointments
+    const evtRows = events.length
+      ? events.map(ev => {
+          const tLabel = {chemo:'Chemo Session',checkup:'Doctor Visit',other:'Appointment'};
+          const photoNote = ev.photos?.length ? `<span class="rpt-photo-badge">📎 ${ev.photos.length} photo${ev.photos.length>1?'s':''}</span>` : '';
+          const noteLine  = ev.notes ? `<div class="rpt-meal-note">${escapeHtml(ev.notes)}</div>` : '';
+          return `<tr>
+            <td class="rpt-td rpt-td-label">${escapeHtml(ev.title)}${noteLine}</td>
+            <td class="rpt-td"><span class="rpt-status rpt-status-event">${tLabel[ev.type]}</span></td>
+            <td class="rpt-td rpt-td-right rpt-muted">${ev.time||''}${photoNote}</td>
+          </tr>`;
+        }).join('')
+      : '';
+
+    // Notes
+    const noteRows = (data.notes||[]).length
+      ? (data.notes||[]).map(n => `<tr><td class="rpt-td rpt-note-cell" colspan="3">${escapeHtml(n.text)}</td></tr>`).join('')
+      : '';
+
+    html += `
+      <div class="rpt-day-card">
+        <div class="rpt-day-header">
+          <span class="rpt-day-title">📋 ${dateLabel}</span>
+        </div>
+
+        <!-- Vitals summary row -->
+        <div class="rpt-vitals-row">
+          <div class="rpt-vital">
+            <div class="rpt-vital-val">${medsDone}/${meds.length}</div>
+            <div class="rpt-vital-label">Medications</div>
+          </div>
+          <div class="rpt-vital-divider"></div>
+          <div class="rpt-vital">
+            <div class="rpt-vital-val">${mealsDone}/${meals.length}${snackCount?`<span class="rpt-vital-extra">+${snackCount}</span>`:''}
+            </div>
+            <div class="rpt-vital-label">Meals</div>
+          </div>
+          <div class="rpt-vital-divider"></div>
+          <div class="rpt-vital">
+            <div class="rpt-vital-val">${totalWater}<span class="rpt-vital-unit">ml</span></div>
+            <div class="rpt-vital-label">Water (${waterPct}%)</div>
+          </div>
+          <div class="rpt-vital-divider"></div>
+          <div class="rpt-vital">
+            <div class="rpt-vital-val">${mood ? moodEmoji[mood] : '—'}</div>
+            <div class="rpt-vital-label">${mood||'No mood'}</div>
+          </div>
+        </div>
+
+        <!-- Medications -->
+        <div class="rpt-section-label">Medications</div>
+        <table class="rpt-table"><tbody>${medRows}</tbody></table>
+
+        <!-- Meals -->
+        <div class="rpt-section-label">Meals</div>
+        <table class="rpt-table"><tbody>${mealRows}</tbody></table>
+
+        <!-- Symptoms -->
+        <div class="rpt-section-label">Symptoms</div>
+        <table class="rpt-table"><tbody>${sympRows}</tbody></table>
+
+        ${evtRows ? `
+        <!-- Appointments -->
+        <div class="rpt-section-label">Appointments</div>
+        <table class="rpt-table"><tbody>${evtRows}</tbody></table>` : ''}
+
+        ${noteRows ? `
+        <!-- Notes -->
+        <div class="rpt-section-label">Notes</div>
+        <table class="rpt-table"><tbody>${noteRows}</tbody></table>` : ''}
+
+        ${data.reflection?.notes ? `
+        <div class="rpt-reflection-block">
+          <span class="rpt-reflection-label">Reflection</span>
+          <p class="rpt-reflection-text">"${escapeHtml(data.reflection.notes)}"</p>
+        </div>` : ''}
+      </div>`;
+  }
+
+  el.innerHTML = html || `<div class="empty-state"><div class="empty-icon">📋</div><p>No data in selected range.</p></div>`;
 }
 
 function renderWeeklyReport() {
-  const el   = document.getElementById('report-weekly-content');
+  const el     = document.getElementById('report-weekly-content');
+  const fromEl = document.getElementById('weekly-from');
+  const toEl   = document.getElementById('weekly-to');
+  const fromKey = fromEl?.value || (() => { const d=new Date(); d.setDate(d.getDate()-6); return d.toISOString().slice(0,10); })();
+  const toKey   = toEl?.value   || todayKey();
+
   const days = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(); d.setDate(d.getDate() - i);
-    const key = d.toISOString().slice(0, 10);
+  let cur = new Date(fromKey + 'T12:00:00');
+  const end = new Date(toKey + 'T12:00:00');
+  while (cur <= end) {
+    const key = cur.toISOString().slice(0, 10);
     const raw = localStorage.getItem(`cc_${key}`);
-    days.push({ dateKey: key, date: d, data: raw ? JSON.parse(raw) : null });
+    days.push({ dateKey: key, date: new Date(cur), data: raw ? JSON.parse(raw) : (key === todayKey() ? STATE : null) });
+    cur.setDate(cur.getDate() + 1);
   }
 
+  const fromLabel  = new Date(fromKey+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const toLabel    = new Date(toKey+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const rangeLabel = fromKey === toKey ? fromLabel : `${fromLabel} – ${toLabel}`;
+
   let totalMeds=0, possibleMeds=0, totalMeals=0, possibleMeals=0, totalWater=0, daysWithData=0;
-  const symptomCounts = {};
-  const moods = [];
+  const symptomCounts={}, moods=[];
 
   days.forEach(({ data }) => {
     if (!data) return;
@@ -2459,46 +2777,123 @@ function renderWeeklyReport() {
     const meals = TASKS.filter(t => t.isMeal);
     possibleMeds  += meds.length;
     possibleMeals += meals.length;
-    totalMeds   += meds.filter(t => data.tasks?.[t.id]?.status === 'done').length;
-    totalMeals  += meals.filter(t => data.tasks?.[t.id]?.status === 'done').length;
-    (data.water || []).forEach(w => { totalWater += w.deducted ? -w.amount_ml : w.amount_ml; });
-    (data.symptoms || []).forEach(s => {
-      symptomCounts[s.symptom] = (symptomCounts[s.symptom] || 0) + 1;
-    });
+    totalMeds   += meds.filter(t => data.tasks?.[t.id]?.status==='done').length;
+    totalMeals  += meals.filter(t => data.tasks?.[t.id]?.status==='done').length;
+    (data.water||[]).forEach(w => { totalWater += w.deducted ? -w.amount_ml : w.amount_ml; });
+    (data.symptoms||[]).forEach(s => { symptomCounts[s.symptom]=(symptomCounts[s.symptom]||0)+1; });
     if (data.reflection?.mood) moods.push(data.reflection.mood);
   });
 
-  const avgWater   = daysWithData ? Math.round(Math.max(0, totalWater) / daysWithData) : 0;
-  const topSymptom = Object.entries(symptomCounts).sort((a,b) => b[1]-a[1])[0];
-  const moodCounts = moods.reduce((acc,m) => { acc[m]=(acc[m]||0)+1; return acc; }, {});
-  const topMood    = Object.entries(moodCounts).sort((a,b) => b[1]-a[1])[0];
+  const avgWater   = daysWithData ? Math.round(Math.max(0,totalWater)/daysWithData) : 0;
+  const medPct     = possibleMeds ? Math.round((totalMeds/possibleMeds)*100) : 0;
+  const topSymptom = Object.entries(symptomCounts).sort((a,b)=>b[1]-a[1])[0];
+  const moodCounts = moods.reduce((acc,m)=>{acc[m]=(acc[m]||0)+1;return acc;},{});
+  const topMood    = Object.entries(moodCounts).sort((a,b)=>b[1]-a[1])[0];
 
-  // Calendar events for the week
+  // Per-day breakdown table
+  const dayRows = days.map(({ dateKey, date, data }) => {
+    const dayLabel = date.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    if (!data) return `<tr><td class="rpt-td rpt-td-label">${dayLabel}</td><td class="rpt-td rpt-muted" colspan="4">No data</td></tr>`;
+    const meds  = TASKS.filter(t=>t.isMed);
+    const meals = TASKS.filter(t=>t.isMeal);
+    const dMeds  = meds.filter(t=>data.tasks?.[t.id]?.status==='done').length;
+    const dMeals = meals.filter(t=>data.tasks?.[t.id]?.status==='done').length;
+    const water  = Math.max(0,(data.water||[]).reduce((s,w)=>s+(w.deducted?-w.amount_ml:w.amount_ml),0));
+    const syms   = (data.symptoms||[]).length;
+    const moodEmoji = {Good:'🙂',Okay:'😐',Difficult:'☹️'};
+    const mood = data.reflection?.mood;
+    const medClass = dMeds===meds.length ? 'rpt-status-done' : dMeds===0 ? 'rpt-status-skip' : 'rpt-status-partial';
+    return `<tr>
+      <td class="rpt-td rpt-td-label">${dayLabel}</td>
+      <td class="rpt-td rpt-td-center"><span class="rpt-status ${medClass}">${dMeds}/${meds.length}</span></td>
+      <td class="rpt-td rpt-td-center">${dMeals}/${meals.length}</td>
+      <td class="rpt-td rpt-td-center rpt-muted">${water} ml</td>
+      <td class="rpt-td rpt-td-center">${mood ? moodEmoji[mood] : '—'}${syms ? ` <span class="rpt-sym-dot">${syms}</span>` : ''}</td>
+    </tr>`;
+  }).join('');
+
+  // Top symptoms
+  const topSymRows = Object.entries(symptomCounts).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([id,count]) => {
+    const sym = SYMPTOMS.find(s=>s.id===id);
+    const pct = days.length ? Math.round((count/days.length)*100) : 0;
+    return `<tr>
+      <td class="rpt-td rpt-td-label">${sym?.label||id}</td>
+      <td class="rpt-td rpt-td-center rpt-muted">${count}x</td>
+      <td class="rpt-td rpt-td-right">
+        <div class="rpt-bar-wrap"><div class="rpt-bar-fill" style="width:${pct}%"></div></div>
+      </td>
+    </tr>`;
+  }).join('') || `<tr><td class="rpt-td rpt-muted" colspan="3">No symptoms logged</td></tr>`;
+
+  // Appointments
   const allEvents  = loadEvents();
-  const weekStart  = days[0].dateKey;
-  const weekEnd    = days[6].dateKey;
-  const weekEvents = allEvents.filter(e => e.date >= weekStart && e.date <= weekEnd);
-  const typeLabel  = { chemo:'Chemo', checkup:'Checkup', other:'Appointment' };
-
-  const eventsHtml = weekEvents.length
+  const weekEvents = allEvents.filter(e => e.date >= fromKey && e.date <= toKey);
+  const typeLabel  = {chemo:'Chemo',checkup:'Checkup',other:'Appointment'};
+  const evtRows = weekEvents.length
     ? weekEvents.map(ev => {
-        const d = new Date(ev.date + 'T12:00:00').toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
-        const photoNote = ev.photos?.length ? ` · ${ev.photos.length} photo${ev.photos.length>1?'s':''}` : '';
-        return `<div class="report-line"><span>${escapeHtml(ev.title)}</span><span class="report-val">${d} · ${typeLabel[ev.type]}${photoNote}</span></div>`;
+        const d = new Date(ev.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+        const photoNote = ev.photos?.length ? `<span class="rpt-photo-badge">📎 ${ev.photos.length}</span>` : '';
+        return `<tr>
+          <td class="rpt-td rpt-td-label">${escapeHtml(ev.title)}</td>
+          <td class="rpt-td"><span class="rpt-status rpt-status-event">${typeLabel[ev.type]}</span></td>
+          <td class="rpt-td rpt-td-right rpt-muted">${d} ${ev.time||''} ${photoNote}</td>
+        </tr>`;
       }).join('')
-    : '<div class="report-line"><span>No appointments this week</span><span class="report-val">—</span></div>';
+    : `<tr><td class="rpt-td rpt-muted" colspan="3">No appointments in this range</td></tr>`;
 
   el.innerHTML = `
-    <h3>📊 Weekly Report — Last 7 Days</h3>
-    <div class="report-line"><span>Medication adherence</span><span class="report-val">${possibleMeds ? Math.round((totalMeds/possibleMeds)*100) : 0}%</span></div>
-    <div class="report-line"><span>Meal completion</span><span class="report-val">${totalMeals} / ${possibleMeals}</span></div>
-    <div class="report-line"><span>Avg. water per day</span><span class="report-val">${avgWater} ml</span></div>
-    <div class="report-line"><span>Most frequent symptom</span><span class="report-val">${topSymptom ? (SYMPTOMS.find(s=>s.id===topSymptom[0])?.label || topSymptom[0]) + ` (${topSymptom[1]}x)` : 'None'}</span></div>
-    <div class="report-line"><span>Mood trend</span><span class="report-val">${topMood ? `${topMood[0]} (${topMood[1]}/${moods.length} days)` : '—'}</span></div>
-    <div class="report-line"><span>Days with data</span><span class="report-val">${daysWithData} of 7</span></div>
-    <div style="margin-top:12px;margin-bottom:4px;font-size:11px;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.8px">Appointments This Week</div>
-    ${eventsHtml}
-  `;
+    <div class="rpt-day-card">
+      <div class="rpt-day-header">
+        <span class="rpt-day-title">📊 Summary — ${rangeLabel}</span>
+        <span class="rpt-muted" style="font-size:11px">${daysWithData} of ${days.length} days with data</span>
+      </div>
+
+      <!-- KPI strip -->
+      <div class="rpt-vitals-row">
+        <div class="rpt-vital">
+          <div class="rpt-vital-val">${medPct}<span class="rpt-vital-unit">%</span></div>
+          <div class="rpt-vital-label">Med adherence</div>
+        </div>
+        <div class="rpt-vital-divider"></div>
+        <div class="rpt-vital">
+          <div class="rpt-vital-val">${totalMeals}<span class="rpt-vital-unit">/${possibleMeals}</span></div>
+          <div class="rpt-vital-label">Meals eaten</div>
+        </div>
+        <div class="rpt-vital-divider"></div>
+        <div class="rpt-vital">
+          <div class="rpt-vital-val">${avgWater}<span class="rpt-vital-unit">ml</span></div>
+          <div class="rpt-vital-label">Avg water/day</div>
+        </div>
+        <div class="rpt-vital-divider"></div>
+        <div class="rpt-vital">
+          <div class="rpt-vital-val">${topMood?topMood[0]:'—'}</div>
+          <div class="rpt-vital-label">Top mood</div>
+        </div>
+      </div>
+
+      <!-- Per-day breakdown -->
+      <div class="rpt-section-label">Day-by-Day Breakdown</div>
+      <table class="rpt-table">
+        <thead>
+          <tr>
+            <th class="rpt-th">Day</th>
+            <th class="rpt-th rpt-th-center">Meds</th>
+            <th class="rpt-th rpt-th-center">Meals</th>
+            <th class="rpt-th rpt-th-center">Water</th>
+            <th class="rpt-th rpt-th-center">Mood</th>
+          </tr>
+        </thead>
+        <tbody>${dayRows}</tbody>
+      </table>
+
+      <!-- Symptom frequency -->
+      <div class="rpt-section-label">Symptom Frequency</div>
+      <table class="rpt-table"><tbody>${topSymRows}</tbody></table>
+
+      <!-- Appointments -->
+      <div class="rpt-section-label">Appointments</div>
+      <table class="rpt-table"><tbody>${evtRows}</tbody></table>
+    </div>`;
 }
 
 async function exportPDF(type) {
@@ -2506,31 +2901,41 @@ async function exportPDF(type) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
 
-  const picker    = document.getElementById('report-date-picker');
-  const dateKey   = type === 'daily' ? (picker?.value || todayKey()) : todayKey();
-  const data      = getDataForDate(dateKey) || STATE;
-  const dateLabel = new Date(dateKey + 'T12:00:00').toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+  const includeAttachments = type === 'daily'
+    ? document.getElementById('daily-include-attachments')?.checked !== false
+    : document.getElementById('weekly-include-attachments')?.checked !== false;
 
-  doc.setFont('helvetica','bold');
-  doc.setFontSize(18);
-  doc.setTextColor(78,116,82);
+  let fromKey, toKey;
+  if (type === 'daily') {
+    fromKey = document.getElementById('daily-from')?.value   || todayKey();
+    toKey   = document.getElementById('daily-to')?.value     || todayKey();
+  } else {
+    fromKey = document.getElementById('weekly-from')?.value  || (() => { const d=new Date(); d.setDate(d.getDate()-6); return d.toISOString().slice(0,10); })();
+    toKey   = document.getElementById('weekly-to')?.value    || todayKey();
+  }
+
+  const fromLabel  = new Date(fromKey+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const toLabel    = new Date(toKey+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const rangeLabel = fromKey === toKey ? fromLabel : `${fromLabel} – ${toLabel}`;
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(78,116,82);
   doc.text('Mama Daily Tracker', 20, 20);
-
-  doc.setFont('helvetica','normal');
-  doc.setFontSize(11);
-  doc.setTextColor(90,107,92);
-  doc.text(`${type === 'daily' ? 'Daily' : 'Weekly'} Report — ${dateLabel}`, 20, 28);
+  doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(90,107,92);
+  doc.text(`${type === 'daily' ? 'Daily' : 'Weekly'} Report — ${rangeLabel}`, 20, 28);
   doc.text(`Patient: ${CONFIG.patientName}`, 20, 36);
+  if (!includeAttachments) {
+    doc.setFontSize(9); doc.setTextColor(150,100,100);
+    doc.text('Note: Photo attachments excluded from this export', 20, 42);
+  }
   doc.setDrawColor(184,212,186);
-  doc.line(20, 40, 190, 40);
+  doc.line(20, includeAttachments ? 40 : 46, 190, includeAttachments ? 40 : 46);
 
-  let y = 48;
+  let y = includeAttachments ? 48 : 54;
   const addLine = (label, val) => {
     doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(50,50,50);
     doc.text(String(label), 20, y);
     doc.setFont('helvetica','bold');
-    const valStr = String(val);
-    const valLines = doc.splitTextToSize(valStr, 80);
+    const valLines = doc.splitTextToSize(String(val), 80);
     doc.text(valLines, 190, y, { align:'right' });
     y += Math.max(7, valLines.length * 6);
     if (y > 270) { doc.addPage(); y = 20; }
@@ -2542,94 +2947,81 @@ async function exportPDF(type) {
   };
 
   if (type === 'daily') {
-    const meds  = TASKS.filter(t => t.isMed);
-    const meals = TASKS.filter(t => t.isMeal);
-    const waterList  = data.water || [];
-    const totalWater = Math.max(0, waterList.reduce((s,w) => s + (w.deducted ? -w.amount_ml : w.amount_ml), 0));
+    const dateKeys = [];
+    let cur = new Date(fromKey+'T12:00:00');
+    const endD = new Date(toKey+'T12:00:00');
+    while (cur <= endD) { dateKeys.push(cur.toISOString().slice(0,10)); cur.setDate(cur.getDate()+1); }
 
-    addSection('Daily Summary');
-    addLine('Medications', `${meds.filter(t=>data.tasks?.[t.id]?.status==='done').length} / ${meds.length}`);
-    addLine('Meals', `${meals.filter(t=>data.tasks?.[t.id]?.status==='done').length} / ${meals.length}`);
-    addLine('Water', `${totalWater} ml`);
-    addLine('Mood', data.reflection?.mood || 'Not logged');
-
-    // Meal notes
-    const mealNotes = meals.filter(t => data.tasks?.[t.id]?.notes);
-    if (mealNotes.length) {
-      addSection('What Was Eaten');
-      mealNotes.forEach(t => addLine(t.label, data.tasks[t.id].notes));
-    }
-
-    // Symptoms
-    if ((data.symptoms || []).length) {
-      addSection('Symptoms');
-      const sev = {1:'Mild',2:'Low',3:'Moderate',4:'High',5:'Severe'};
-      data.symptoms.forEach(s => {
-        const sym = SYMPTOMS.find(x => x.id === s.symptom);
-        addLine(sym?.label || s.symptom, `Severity ${s.severity}/5 — ${sev[s.severity]}`);
-      });
-    }
-
-    // Reflection
-    if (data.reflection?.notes) {
-      addSection('Reflection');
-      doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(50,50,50);
-      const lines = doc.splitTextToSize(data.reflection.notes, 160);
-      doc.text(lines, 20, y); y += lines.length * 6 + 4;
-    }
-
-    // Notes
-    if ((data.notes || []).length) {
-      addSection('Notes');
-      data.notes.forEach(n => {
+    for (const dateKey of dateKeys) {
+      const data = getDataForDate(dateKey);
+      const dateLabel = new Date(dateKey+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+      addSection(`Daily Summary — ${dateLabel}`);
+      if (!data) {
+        doc.setFont('helvetica','italic'); doc.setFontSize(10); doc.setTextColor(150,150,150);
+        doc.text('No data logged for this day.', 20, y); y += 8; continue;
+      }
+      const meds  = TASKS.filter(t => t.isMed);
+      const meals = TASKS.filter(t => t.isMeal);
+      const totalWater = Math.max(0, (data.water||[]).reduce((s,w) => s+(w.deducted?-w.amount_ml:w.amount_ml),0));
+      addLine('Medications', `${meds.filter(t=>data.tasks?.[t.id]?.status==='done').length} / ${meds.length}`);
+      addLine('Meals',       `${meals.filter(t=>data.tasks?.[t.id]?.status==='done').length} / ${meals.length}`);
+      addLine('Water',       `${totalWater} ml`);
+      addLine('Mood',        data.reflection?.mood || 'Not logged');
+      const mealNotes = meals.filter(t => data.tasks?.[t.id]?.notes);
+      if (mealNotes.length) { addSection('What Was Eaten'); mealNotes.forEach(t => addLine(t.label, data.tasks[t.id].notes)); }
+      if ((data.symptoms||[]).length) {
+        addSection('Symptoms');
+        const sev={1:'Mild',2:'Low',3:'Moderate',4:'High',5:'Severe'};
+        data.symptoms.forEach(s => { const sym=SYMPTOMS.find(x=>x.id===s.symptom); addLine(sym?.label||s.symptom,`Severity ${s.severity}/5 — ${sev[s.severity]}`); });
+      }
+      if (data.reflection?.notes) {
+        addSection('Reflection');
         doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(50,50,50);
-        const lines = doc.splitTextToSize(n.text, 160);
+        const lines = doc.splitTextToSize(data.reflection.notes, 160);
         doc.text(lines, 20, y); y += lines.length * 6 + 4;
-        if (y > 270) { doc.addPage(); y = 20; }
-      });
-    }
-
-    // Calendar events for this date
-    const dayEvents = loadEvents().filter(e => e.date === dateKey);
-    if (dayEvents.length) {
-      addSection('Appointments');
-      const tLabel = { chemo:'Chemo Session', checkup:'Doctor Visit', other:'Appointment' };
-      dayEvents.forEach(ev => {
-        addLine(ev.title, `${tLabel[ev.type]}${ev.time ? ' · '+ev.time : ''}`);
-        if (ev.notes) {
-          doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(100,100,100);
-          doc.text(ev.notes, 25, y); y += 6;
-        }
-        if (ev.photos?.length) {
-          doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(100,100,100);
-          doc.text(`${ev.photos.length} photo attachment${ev.photos.length>1?'s':''} on file`, 25, y); y += 6;
-          ev.photos.forEach((url, i) => {
-            doc.setTextColor(78,116,82);
-            const shortUrl = url.length > 60 ? url.substring(0,57)+'...' : url;
-            doc.text(`  Photo ${i+1}: ${shortUrl}`, 25, y); y += 5;
-            if (y > 270) { doc.addPage(); y = 20; }
-          });
-        }
-        y += 2;
-      });
+      }
+      if ((data.notes||[]).length) {
+        addSection('Notes');
+        data.notes.forEach(n => {
+          doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(50,50,50);
+          const lines = doc.splitTextToSize(n.text, 160);
+          doc.text(lines, 20, y); y += lines.length * 6 + 4;
+          if (y > 270) { doc.addPage(); y = 20; }
+        });
+      }
+      const dayEvents = loadEvents().filter(e => e.date === dateKey);
+      if (dayEvents.length) {
+        addSection('Appointments');
+        const tLabel = { chemo:'Chemo Session', checkup:'Doctor Visit', other:'Appointment' };
+        dayEvents.forEach(ev => {
+          addLine(ev.title, `${tLabel[ev.type]}${ev.time?' · '+ev.time:''}`);
+          if (ev.notes) { doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(100,100,100); doc.text(ev.notes,25,y); y+=6; }
+          if (ev.photos?.length && includeAttachments) {
+            doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(100,100,100);
+            doc.text(`${ev.photos.length} photo attachment${ev.photos.length>1?'s':''} on file`,25,y); y+=6;
+            ev.photos.forEach((url,i) => {
+              doc.setTextColor(78,116,82);
+              doc.text(`  Photo ${i+1}: ${url.length>60?url.substring(0,57)+'...':url}`,25,y); y+=5;
+              if (y>270) { doc.addPage(); y=20; }
+            });
+          }
+          y += 2;
+        });
+      }
+      if (y < 268) { y += 4; doc.setDrawColor(220,230,220); doc.line(20,y,190,y); y+=6; }
     }
 
   } else {
-    // Weekly
-    addSection('Weekly Summary — Last 7 Days');
+    addSection(`Summary — ${rangeLabel}`);
     const days = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(); d.setDate(d.getDate() - i);
-      const key = d.toISOString().slice(0, 10);
-      const raw = localStorage.getItem(`cc_${key}`);
-      days.push({ dateKey: key, data: raw ? JSON.parse(raw) : null });
-    }
+    let cur = new Date(fromKey+'T12:00:00');
+    const endD = new Date(toKey+'T12:00:00');
+    while (cur<=endD) { const k=cur.toISOString().slice(0,10); const raw=localStorage.getItem(`cc_${k}`); days.push({dateKey:k,data:raw?JSON.parse(raw):(k===todayKey()?STATE:null)}); cur.setDate(cur.getDate()+1); }
     let tMeds=0,pMeds=0,tMeals=0,pMeals=0,tWater=0,dData=0;
-    const sCounts={};
-    const moods=[];
+    const sCounts={}, moods=[];
     days.forEach(({data:d})=>{
       if(!d)return; dData++;
-      const meds=TASKS.filter(t=>t.isMed); const meals=TASKS.filter(t=>t.isMeal);
+      const meds=TASKS.filter(t=>t.isMed), meals=TASKS.filter(t=>t.isMeal);
       pMeds+=meds.length; pMeals+=meals.length;
       tMeds+=meds.filter(t=>d.tasks?.[t.id]?.status==='done').length;
       tMeals+=meals.filter(t=>d.tasks?.[t.id]?.status==='done').length;
@@ -2637,50 +3029,35 @@ async function exportPDF(type) {
       (d.symptoms||[]).forEach(s=>{sCounts[s.symptom]=(sCounts[s.symptom]||0)+1;});
       if(d.reflection?.mood)moods.push(d.reflection.mood);
     });
-    const avgW=dData?Math.round(Math.max(0,tWater)/dData):0;
     const topS=Object.entries(sCounts).sort((a,b)=>b[1]-a[1])[0];
-    const mC=moods.reduce((a,m)=>{a[m]=(a[m]||0)+1;return a;},{});
-    const topM=Object.entries(mC).sort((a,b)=>b[1]-a[1])[0];
-    addLine('Medication adherence', `${pMeds?Math.round((tMeds/pMeds)*100):0}%`);
-    addLine('Meal completion', `${tMeals} / ${pMeals}`);
-    addLine('Avg. water/day', `${avgW} ml`);
-    addLine('Most frequent symptom', topS?(SYMPTOMS.find(s=>s.id===topS[0])?.label||topS[0])+` (${topS[1]}x)`:'None');
-    addLine('Mood trend', topM?`${topM[0]} (${topM[1]}/${moods.length} days)`:'—');
-    addLine('Days with data', `${dData} of 7`);
-
-    // Weekly calendar events
-    const allEvts = loadEvents();
-    const wStart  = days[0].dateKey;
-    const wEnd    = days[6].dateKey;
-    const wEvts   = allEvts.filter(e => e.date >= wStart && e.date <= wEnd);
+    const topM=Object.entries(moods.reduce((a,m)=>{a[m]=(a[m]||0)+1;return a;},{})).sort((a,b)=>b[1]-a[1])[0];
+    addLine('Medication adherence',`${pMeds?Math.round((tMeds/pMeds)*100):0}%`);
+    addLine('Meal completion',`${tMeals} / ${pMeals}`);
+    addLine('Avg. water/day',`${dData?Math.round(Math.max(0,tWater)/dData):0} ml`);
+    addLine('Most frequent symptom',topS?(SYMPTOMS.find(s=>s.id===topS[0])?.label||topS[0])+` (${topS[1]}x)`:'None');
+    addLine('Mood trend',topM?`${topM[0]} (${topM[1]}/${moods.length} days)`:'—');
+    addLine('Days with data',`${dData} of ${days.length}`);
+    const wEvts = loadEvents().filter(e=>e.date>=fromKey&&e.date<=toKey);
     if (wEvts.length) {
-      addSection('Appointments This Week');
-      const tLabel = { chemo:'Chemo Session', checkup:'Doctor Visit', other:'Appointment' };
+      addSection('Appointments');
+      const tLabel={chemo:'Chemo Session',checkup:'Doctor Visit',other:'Appointment'};
       wEvts.forEach(ev => {
-        const d = new Date(ev.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-        addLine(`${d} — ${ev.title}`, tLabel[ev.type]);
-        if (ev.notes) {
-          doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(100,100,100);
-          doc.text(ev.notes, 25, y); y += 6;
-        }
-        if (ev.photos?.length) {
-          doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(78,116,82);
-          doc.text(`  ${ev.photos.length} photo attachment${ev.photos.length>1?'s':''} on file`, 25, y); y += 5;
-        }
-        y += 2;
+        const d=new Date(ev.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+        addLine(`${d} — ${ev.title}`,tLabel[ev.type]);
+        if(ev.notes){doc.setFont('helvetica','italic');doc.setFontSize(9);doc.setTextColor(100,100,100);doc.text(ev.notes,25,y);y+=6;}
+        if(ev.photos?.length&&includeAttachments){doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(78,116,82);doc.text(`  ${ev.photos.length} photo attachment${ev.photos.length>1?'s':''} on file`,25,y);y+=5;}
+        y+=2;
       });
     }
   }
 
   doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(150,150,150);
   doc.text(`Generated by Mama Daily Tracker · ${new Date().toLocaleDateString()} · For medical use`, 20, 285);
-  doc.save(`mama-daily-${type}-${dateKey}.pdf`);
+  doc.save(`mama-${type}-${fromKey}${fromKey!==toKey?'_to_'+toKey:''}.pdf`);
   showToast('PDF downloaded!');
 }
 
-/* ═══════════════════════════════════════════════════════════
-   MODAL HELPERS
-═══════════════════════════════════════════════════════════ */
+
 function openModal(id) {
   document.getElementById(id).classList.add('open');
   // Close when tapping backdrop
@@ -2695,6 +3072,152 @@ function closeModal(id) {
 /* ═══════════════════════════════════════════════════════════
    SYNC / ONLINE
 ═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════
+   NOTIFICATIONS  (in-app banner + native OS push)
+═══════════════════════════════════════════════════════════ */
+
+// ── Permission request ──────────────────────────────────
+// Called once on first interaction so the browser prompt
+// doesn't fire on cold load (browsers block that).
+async function requestNotifPermission() {
+  if (!('Notification' in window)) return 'unsupported';
+  if (Notification.permission === 'granted') return 'granted';
+  if (Notification.permission === 'denied')  return 'denied';
+  const result = await Notification.requestPermission();
+  return result;
+}
+
+// Ask on first tap anywhere in the app (one-time)
+let _notifPermAsked = false;
+document.addEventListener('click', async () => {
+  if (_notifPermAsked) return;
+  _notifPermAsked = true;
+  await requestNotifPermission();
+}, { once: false, capture: true, passive: true });
+
+// ── Fired-set: tracks which notifs already sent a native push
+//    this session so we don't spam on every 5-min tick
+if (!window._notifFired)     window._notifFired     = new Set();
+if (!window._notifDismissed) window._notifDismissed = new Set();
+
+// ── Send a native OS notification ──────────────────────
+function fireNativeNotif(id, title, body, icon) {
+  if (window._notifFired.has(id)) return;          // already sent this session
+  if (Notification.permission !== 'granted') return;
+  window._notifFired.add(id);
+  try {
+    const n = new Notification(title, {
+      body,
+      icon:  icon || 'icons/icon-192.png',
+      badge: 'icons/icon-192.png',
+      tag:   id,          // same tag = replaces previous, no stacking
+      renotify: false,
+    });
+    // Auto-close the OS notification after 8 s
+    setTimeout(() => n.close(), 8000);
+    // Tapping the OS notification focuses the app
+    n.onclick = () => { window.focus(); n.close(); };
+  } catch(e) {
+    console.warn('[Notif] native failed:', e);
+  }
+}
+
+// ── Main render: builds in-app banner items + fires native ─
+function renderNotifications() {
+  const banner = document.getElementById('notif-banner');
+  if (!banner) return;
+
+  const now    = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const today  = todayKey();
+  const notifs = [];
+
+  // ── MEAL REMINDERS ─────────────────────────────────────
+  const mealWindows = [
+    { id:'breakfast', label:'Breakfast Time',  emoji:'🍳', startMin:  7*60, endMin: 10*60 },
+    { id:'lunch',     label:'Lunch Time',      emoji:'🥗', startMin: 11*60, endMin: 14*60 },
+    { id:'dinner',    label:'Dinner Time',     emoji:'🍽️', startMin: 17*60, endMin: 20*60 },
+  ];
+  mealWindows.forEach(m => {
+    if (nowMin < m.startMin || nowMin > m.endMin) return;
+    const st = STATE.tasks[m.id];
+    if (st?.status === 'done' || st?.status === 'skip') return;
+    if (window._notifDismissed.has(m.id)) return;
+    const body = "It's time to eat — have you had this meal yet?";
+    notifs.push({ id: m.id, type:'notif-meal', icon: m.emoji, title: m.label, sub: body });
+    fireNativeNotif(m.id, `🍽️ ${m.label}`, body);
+  });
+
+  // ── WATER REMINDER ─────────────────────────────────────
+  const waterSlot    = Math.floor(nowMin / 120); // changes every 2 h
+  const waterNotifId = `water-${waterSlot}`;
+  if (!window._notifDismissed.has(waterNotifId) && nowMin >= 8*60 && nowMin <= 20*60) {
+    const waterTotal = Math.max(0, (STATE.water||[]).reduce((s,w)=>s+(w.deducted?-w.amount_ml:w.amount_ml),0));
+    const waterPct   = Math.round((waterTotal / CONFIG.waterGoalMl) * 100);
+    if (waterPct < 80) {
+      const body = `${waterTotal} ml logged — ${waterPct}% of daily goal. Time for some water!`;
+      notifs.push({ id: waterNotifId, type:'notif-water', icon:'💧', title:'Hydration Check', sub: body });
+      fireNativeNotif(waterNotifId, '💧 Hydration Check', body);
+    }
+  }
+
+  // ── SCHEDULE EVENT REMINDERS ───────────────────────────
+  const events = loadEvents().filter(e => e.date === today);
+  const typeLabel = { chemo:'Chemo Session', checkup:'Doctor Visit', other:'Appointment' };
+  events.forEach(ev => {
+    const evNotifId = `ev-${ev.id}`;
+    if (window._notifDismissed.has(evNotifId)) return;
+
+    if (ev.time) {
+      const [h, m] = ev.time.split(':').map(Number);
+      const evMin  = h * 60 + m;
+      if (nowMin >= evMin - 60 && nowMin <= evMin + 30) {
+        const diff     = evMin - nowMin;
+        const whenStr  = diff > 0 ? `in ${diff} min` : diff === 0 ? 'now' : `${Math.abs(diff)} min ago`;
+        const body     = `${typeLabel[ev.type]} — ${whenStr}`;
+        notifs.push({ id: evNotifId, type:'notif-event', icon:'📅', title: ev.title, sub: body });
+        // Only fire native once — when it's exactly the 60-min mark slot
+        if (diff > 55 && diff <= 60) fireNativeNotif(evNotifId, `📅 ${ev.title}`, body);
+        // And again at exactly start time
+        const atStartId = `${evNotifId}-start`;
+        if (diff <= 1 && diff >= -1) fireNativeNotif(atStartId, `📅 ${ev.title}`, `${typeLabel[ev.type]} is starting now`);
+      }
+    } else {
+      // All-day — fire native once at 8 am slot
+      const body = `${typeLabel[ev.type]} — today`;
+      notifs.push({ id: evNotifId, type:'notif-event', icon:'📅', title: ev.title, sub: body });
+      if (nowMin >= 8*60 && nowMin < 8*60 + 10) fireNativeNotif(evNotifId, `📅 ${ev.title}`, body);
+    }
+  });
+
+  // ── Render in-app banner ────────────────────────────────
+  if (!notifs.length) {
+    banner.innerHTML = '';
+    banner.classList.remove('has-notifs');
+    return;
+  }
+
+  banner.innerHTML = notifs.map(n => `
+    <div class="notif-item ${n.type}" id="notif-${n.id}">
+      <span class="notif-icon">${n.icon}</span>
+      <div class="notif-body">
+        <div class="notif-title">${n.title}</div>
+        <div class="notif-sub">${n.sub}</div>
+      </div>
+      <button class="notif-dismiss" onclick="dismissNotif('${n.id}')">×</button>
+    </div>`).join('');
+  banner.classList.add('has-notifs');
+}
+
+function dismissNotif(id) {
+  if (!window._notifDismissed) window._notifDismissed = new Set();
+  window._notifDismissed.add(id);
+  renderNotifications();
+}
+
+// Refresh every 5 minutes
+setInterval(renderNotifications, 5 * 60 * 1000);
+
 function setupOnlineHandlers() {
   window.addEventListener('online', () => {
     isOnline = true;
