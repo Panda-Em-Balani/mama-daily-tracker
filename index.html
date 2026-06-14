@@ -3247,23 +3247,67 @@ function closeModal(id) {
    NOTIFICATIONS  (in-app banner + native OS push)
 ═══════════════════════════════════════════════════════════ */
 
-// ── Permission request ──────────────────────────────────
-// Called once on first interaction so the browser prompt
-// doesn't fire on cold load (browsers block that).
-async function requestNotifPermission() {
-  if (!('Notification' in window)) return 'unsupported';
-  if (Notification.permission === 'granted') return 'granted';
-  if (Notification.permission === 'denied')  return 'denied';
-  const result = await Notification.requestPermission();
-  return result;
+// ── VAPID public key ────────────────────────────────────
+const VAPID_PUBLIC_KEY = 'BKwmXvAX9ts1qx5C58WLeC0K3vebbEvoazpB27vR39YI0z5Davei56P3Xiy8yLwlABJPPd6WVAjb5QfvEdK7P-Y';
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64  = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw     = atob(base64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
 }
 
-// Ask on first tap anywhere in the app (one-time)
+// ── Subscribe to Web Push and save to Supabase ──────────
+async function subscribeToPush() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    console.warn('[Push] Not supported in this browser');
+    return;
+  }
+
+  try {
+    const reg  = await navigator.serviceWorker.ready;
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') return;
+
+    // Check if already subscribed
+    let sub = await reg.pushManager.getSubscription();
+
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly:      true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      });
+    }
+
+    // Save subscription to Supabase
+    const { endpoint, keys } = sub.toJSON();
+    await fetch(`${CONFIG.supabaseUrl}/rest/v1/push_subscriptions`, {
+      method:  'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'apikey':        CONFIG.supabaseKey,
+        'Authorization': `Bearer ${CONFIG.supabaseKey}`,
+        'Prefer':        'resolution=ignore-duplicates',
+      },
+      body: JSON.stringify({
+        endpoint,
+        p256dh: keys.p256dh,
+        auth:   keys.auth,
+      }),
+    });
+
+    console.log('[Push] Subscribed and saved');
+  } catch(e) {
+    console.warn('[Push] Subscribe failed:', e);
+  }
+}
+
+// Ask on first tap anywhere in the app (one-time per session)
 let _notifPermAsked = false;
 document.addEventListener('click', async () => {
   if (_notifPermAsked) return;
   _notifPermAsked = true;
-  await requestNotifPermission();
+  await subscribeToPush();
 }, { once: false, capture: true, passive: true });
 
 // ── Fired-set: tracks which notifs already sent a native push
@@ -3271,22 +3315,20 @@ document.addEventListener('click', async () => {
 if (!window._notifFired)     window._notifFired     = new Set();
 if (!window._notifDismissed) window._notifDismissed = new Set();
 
-// ── Send a native OS notification ──────────────────────
+// ── Send a native OS notification (fallback when app is open)
 function fireNativeNotif(id, title, body, icon) {
-  if (window._notifFired.has(id)) return;          // already sent this session
+  if (window._notifFired.has(id)) return;
   if (Notification.permission !== 'granted') return;
   window._notifFired.add(id);
   try {
     const n = new Notification(title, {
       body,
-      icon:  icon || 'icons/icon-192.png',
-      badge: 'icons/icon-192.png',
-      tag:   id,          // same tag = replaces previous, no stacking
+      icon:     icon || 'icons/icon-192.png',
+      badge:    'icons/icon-192.png',
+      tag:      id,
       renotify: false,
     });
-    // Auto-close the OS notification after 8 s
     setTimeout(() => n.close(), 8000);
-    // Tapping the OS notification focuses the app
     n.onclick = () => { window.focus(); n.close(); };
   } catch(e) {
     console.warn('[Notif] native failed:', e);
