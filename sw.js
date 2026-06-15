@@ -3,7 +3,7 @@
    Handles: push notifications, network-first caching
 ═══════════════════════════════════════════════════════════ */
 
-const CACHE = 'mama-daily-v2';
+const CACHE = 'mama-daily-v3';
 
 // ── Install & cache shell ────────────────────────────────
 self.addEventListener('install', e => {
